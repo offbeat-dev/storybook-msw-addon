@@ -1,0 +1,135 @@
+{
+  "name": "storybook-msw-addon",
+  "version": "0.0.0",
+  "description": "An MSW (Mock Service Worker) addon including a control panel that enables interaction and manipulation of mock requests within Storybook.",
+  "keywords": [
+    "storybook-addons",
+    "msw",
+    "api",
+    "requests",
+    "mock",
+    "service",
+    "worker"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/offbeat-dev/storybook-msw-addon"
+  },
+  "author": {
+    "name": "offbeat-dev",
+    "email": "offbeat.it.all@gmail.com"
+  },
+  "contributors": [
+    "offbeat-dev <offbeat.it.all@gmail.com>",
+    "AnaVillav <ana.villavicencio.b@gmail.com>"
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./manager": {
+      "require": "./dist/manager.js",
+      "import": "./dist/manager.mjs",
+      "types": "./dist/manager.d.ts"
+    },
+    "./preview": {
+      "require": "./dist/preview.js",
+      "import": "./dist/preview.mjs",
+      "types": "./dist/preview.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "*.js",
+    "*.d.ts"
+  ],
+  "scripts": {
+    "clean": "rimraf ./dist",
+    "prebuild": "yarn clean",
+    "build": "tsup",
+    "build:watch": "yarn build --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"yarn build:watch\" \"yarn storybook --quiet\"",
+    "prerelease": "zx scripts/prepublish-checks.mjs",
+    "release": "yarn build && auto shipit",
+    "eject-ts": "zx scripts/eject-typescript.mjs",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^7.0.0-rc.9",
+    "@storybook/addon-interactions": "^7.0.0-rc.9",
+    "@storybook/addon-links": "^7.0.0-rc.9",
+    "@storybook/react": "^7.0.0-rc.9",
+    "@storybook/react-vite": "^7.0.0-rc.9",
+    "@storybook/testing-library": "^0.0.14-next.1",
+    "@types/node": "^18.15.0",
+    "@vitejs/plugin-react": "^3.1.0",
+    "auto": "^10.3.0",
+    "boxen": "^5.0.1",
+    "concurrently": "^6.2.0",
+    "dedent": "^0.7.0",
+    "msw": "^v0.43.0",
+    "prettier": "^2.3.1",
+    "prompts": "^2.4.2",
+    "prop-types": "^15.8.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "rimraf": "^3.0.2",
+    "sass": "^1.60.0",
+    "storybook": "^7.0.0-rc.9",
+    "tsup": "^6.6.3",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.4",
+    "zx": "^1.14.1"
+  },
+  "peerDependencies": {
+    "@storybook/blocks": "^7.0.0-rc.9",
+    "@storybook/components": "^7.0.0-rc.9",
+    "@storybook/core-events": "^7.0.0-rc.9",
+    "@storybook/manager-api": "^7.0.0-rc.9",
+    "@storybook/preview-api": "^7.0.0-rc.9",
+    "@storybook/theming": "^7.0.0-rc.9",
+    "@storybook/types": "^7.0.0-rc.9",
+    "msw": ">=0.35.0 <2.0.0",
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "storybook": {
+    "displayName": "Mock Service Worker Addon Panel",
+    "supportedFrameworks": [
+      "react",
+      "vue",
+      "angular",
+      "web-components",
+      "ember",
+      "html",
+      "svelte",
+      "preact",
+      "react-native"
+    ],
+    "icon": "https://raw.githubusercontent.com/offbeat-dev/storybook-msw-addon/main/storybook-msw-addon.png"
+  },
+  "msw": {
+    "workerDirectory": ""
+  }
+}
