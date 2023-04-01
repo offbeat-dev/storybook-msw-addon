@@ -1,3 +1,17 @@
+# v0.3.1 (Sat Apr 01 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :construction: -- fix version conflict ([@offbeat-dev](https://github.com/offbeat-dev))
+- :construction: -- release initial version ([@offbeat-dev](https://github.com/offbeat-dev))
+- :tada: -- initial commit ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.1.8 (Sat Apr 01 2023)
 
 #### ⚠️ Pushed to `main`
