@@ -1,41 +1,41 @@
-# name: Release
+name: Release
 
-# on: [push]
+on: [push]
 
-# jobs:
-#   release:
-#     runs-on: ubuntu-latest
-#     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
-#     steps:
-#       - uses: actions/checkout@v3
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    steps:
+      - uses: actions/checkout@v3
 
-#       - name: Prepare repository
-#         run: git fetch --unshallow --tags
+      - name: Prepare repository
+        run: git fetch --unshallow --tags
 
-#       - name: Use Node.js 16.x
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: 16.x
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
 
-#       - name: Install dependencies
-#         run: yarn install --frozen-lockfiles
-#         env:
-#           NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
+      - name: Install dependencies
+        run: yarn install --frozen-lockfiles
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
 
-#       - name: Create Release
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-#         run: |
-#           yarn release
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn release
 
-#       # - name: Publish to Github Packages
-#       #   uses: actions/setup-node@v3
-#       #   with:
-#       #     node-version: "16.x"
-#       #     registry-url: "https://npm.pkg.github.com"
-#       #     scope: "@offbeat-dev"
-#       # - run: yarn publish --registry=https://npm.pkg.github.com --access public
-#       #   env:
-#       #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Publish to Github Packages
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: "16.x"
+      #     registry-url: "https://npm.pkg.github.com"
+      #     scope: "@offbeat-dev"
+      # - run: yarn publish --registry=https://npm.pkg.github.com --access public
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
