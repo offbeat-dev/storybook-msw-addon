@@ -1,3 +1,15 @@
+# v0.3.10 (Mon Apr 03 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :wrench: -- add check for worker to fix issue in non msw related stories ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.8 (Mon Apr 03 2023)
 
 #### ⚠️ Pushed to `main`
