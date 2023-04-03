@@ -4,12 +4,10 @@ export type SetupApi = SetupWorker;
 export type InitializeOptions = Parameters<SetupWorker["start"]>[0];
 
 export type MswParameters = {
-  msw?:
-    | RequestHandler[]
-    | {
-        handlers: RequestHandler[] | Record<string, RequestHandler>;
-        originalResponses: Record<string, any>;
-      };
+  msw?: {
+    handlers: RequestHandler[] | Record<string, RequestHandler>;
+    originalResponses: Record<string, any>;
+  };
 };
 
 type Context = {
@@ -20,7 +18,6 @@ let worker: SetupWorker;
 let opt: InitializeOptions;
 
 export const initialize = async (options?: InitializeOptions) => {
-  console.log("initialize", options);
   opt = options;
 };
 
@@ -38,8 +35,8 @@ export const mswLoader = async (context: Context) => {
   const {
     parameters: { msw },
   } = context;
+  if (msw.originalResponses) return;
   const worker = typeof global.process === "undefined" && setupWorker();
-
   if ("handlers" in msw && msw.handlers) {
     const handlers = Object.values(msw.handlers)
       .filter(Boolean)
@@ -55,13 +52,11 @@ export const mswLoader = async (context: Context) => {
 
     (window as any).msw = worker;
 
-    if (!msw.originalResponses) {
-      const responses = await getOriginalResponses(handlers);
-      context.parameters.msw = {
-        ...msw,
-        originalResponses: responses,
-      };
-    }
+    const responses = await getOriginalResponses(handlers);
+    context.parameters.msw = {
+      ...msw,
+      originalResponses: responses,
+    };
   }
 
   return {};

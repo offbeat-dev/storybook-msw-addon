@@ -142,7 +142,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
                   ))}
               </HandlersAndResponses>
               <Notice>
-                * refresh the browser tab to restore original story data
+                * refresh the browser tab to restore original response data
               </Notice>
             </ObjectContent>
           </Container>

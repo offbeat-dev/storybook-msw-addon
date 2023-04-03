@@ -39,10 +39,9 @@ export const transformedResponse = (s: number, d: number, r: any) => {
 };
 
 const updateHandlers = (handlers: RequestHandler[]) => {
+  const worker = (window as any).msw;
   handlers.forEach((handler: any) => {
     const currentResponse = responses[handler.info.path];
-
-    const worker = (window as any).msw;
     worker.use(
       rest.get(handler.info.path, (req, res, ctx) => {
         return res(
@@ -64,31 +63,27 @@ export const withRoundTrip = (
     handlers: any;
   parameters = ctx.parameters;
   if (parameters) msw = getParameter(parameters, PARAM_KEY, []);
-  if (msw) {
-    handlers = msw.handlers;
-    responses = msw.originalResponses;
-  }
-
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {
-      if (key === "delay") {
-        delay = value;
-        moveTimeout = setTimeout(() => {
-          updateHandlers(handlers);
-          channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
-        }, 200);
-      }
-      if (key === "status") {
-        status = value;
-        updateHandlers(handlers);
-        channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
-      }
       const responseObject: ResponseObject = {
         delay: delay,
         status: status,
         responses: responses,
       };
       emit(EVENTS.SEND, responseObject);
+      if (key === "delay") {
+        clearTimeout(moveTimeout);
+        delay = value;
+        moveTimeout = setTimeout(() => {
+          updateHandlers(handlers);
+          channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
+        }, 300);
+      }
+      if (key === "status") {
+        status = value;
+        updateHandlers(handlers);
+        channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
+      }
     },
     [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
       if (key === "responses") {
@@ -98,21 +93,25 @@ export const withRoundTrip = (
           status: status,
           responses: responses,
         };
-        updateHandlers(handlers);
         emit(EVENTS.SEND, responseObject);
+        updateHandlers(handlers);
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
     },
   });
 
   if (INITIAL_MOUNT_STATE) {
+    handlers = msw.handlers;
+    responses = msw.originalResponses;
+
+    emit(EVENTS.SEND, { status: 200, delay: 0, responses });
     channel.on(STORY_CHANGED, () => {
       STORY_CHANGED_STATE = true;
     });
-    emit(EVENTS.SEND, { status: 200, delay: 0, responses });
     INITIAL_MOUNT_STATE = false;
   }
   if (STORY_CHANGED_STATE) {
+    channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
     STORY_CHANGED_STATE = false;
   }
 
