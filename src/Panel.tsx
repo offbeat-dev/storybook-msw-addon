@@ -24,8 +24,12 @@ const ObjectContent = styled.div`
 `;
 
 const Notice = styled.div`
+  background-color: ${({ theme }) => theme.background.app};
   color: ${({ theme }) => theme.color.gold};
-  margin-block-start: 0.5rem;
+  margin-block-start: 1rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+  inline-size: fit-content;
 `;
 
 const Container = styled.div`
@@ -142,7 +146,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
                   ))}
               </HandlersAndResponses>
               <Notice>
-                * refresh the browser tab to restore original response data
+                * Refresh the browser tab to restore original response data
               </Notice>
             </ObjectContent>
           </Container>

@@ -65,17 +65,11 @@ export const withRoundTrip = (
   if (parameters) msw = getParameter(parameters, PARAM_KEY, []);
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {
-      const responseObject: ResponseObject = {
-        delay: delay,
-        status: status,
-        responses: responses,
-      };
-      emit(EVENTS.SEND, responseObject);
       if (key === "delay") {
         clearTimeout(moveTimeout);
         delay = value;
+        updateHandlers(handlers);
         moveTimeout = setTimeout(() => {
-          updateHandlers(handlers);
           channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
         }, 300);
       }
@@ -84,6 +78,12 @@ export const withRoundTrip = (
         updateHandlers(handlers);
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
+      const responseObject: ResponseObject = {
+        delay: delay,
+        status: status,
+        responses: responses,
+      };
+      emit(EVENTS.SEND, responseObject);
     },
     [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
       if (key === "responses") {
