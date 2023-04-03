@@ -7315,6 +7315,11 @@ store2@^2.14.2:
   resolved "https://registry.yarnpkg.com/store2/-/store2-2.14.2.tgz#56138d200f9fe5f582ad63bc2704dbc0e4a45068"
   integrity sha512-siT1RiqlfQnGqgT/YzXVUNsom9S0H1OX+dpdGN1xkyYATo4I6sep5NmsRD/40s3IIOvlCq6akxkqG82urIZW1w==
 
+storybook-addon-grid-overlay@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/storybook-addon-grid-overlay/-/storybook-addon-grid-overlay-0.0.7.tgz#27332acae4976caa03fdcdb80545a0a4dbbfbc3b"
+  integrity sha512-dGs2eXxSjsz5OUjvChg/dZOczxWnXxZOisDAWNjGUn01lR61IPE5u3hWUKD68m8sPKZi/+JLMopkauXvm/YZtA==
+
 storybook@^7.0.0-rc.9:
   version "7.0.0-rc.10"
   resolved "https://registry.yarnpkg.com/storybook/-/storybook-7.0.0-rc.10.tgz#01936f93b84b910b35efa166a4cc354aa07b9867"

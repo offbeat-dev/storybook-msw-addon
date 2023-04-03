@@ -39,9 +39,9 @@ export const transformedResponse = (s: number, d: number, r: any) => {
 };
 
 const updateHandlers = (handlers: RequestHandler[]) => {
-  if (!handlers) return;
+  if (!handlers || !responses) return;
   const worker = (window as any).msw;
-  handlers.forEach((handler: any) => {
+  handlers?.forEach((handler: any) => {
     const currentResponse = responses[handler.info.path];
     status = currentResponse.status;
     worker.use(
@@ -123,6 +123,7 @@ export const withRoundTrip = (
       location.reload();
     });
     INITIAL_MOUNT_STATE = false;
+    channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
   }
 
   if (STORY_CHANGED_STATE) {
