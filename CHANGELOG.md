@@ -1,3 +1,15 @@
+# v0.3.7 (Mon Apr 03 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :memo: -- fix install instructions on README file ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.6 (Mon Apr 03 2023)
 
 #### ⚠️ Pushed to `main`
