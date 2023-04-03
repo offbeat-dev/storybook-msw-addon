@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/react";
-import { initialize, mswLoader, getWorker } from "../dist/index.mjs";
+import { initialize, mswLoader } from "../dist/index.mjs";
 
-await initialize({
+initialize({
   onUnhandledRequest: "bypass",
 });
 

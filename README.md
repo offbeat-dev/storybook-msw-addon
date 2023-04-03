@@ -13,6 +13,10 @@
 
 An MSW (Mock Service Worker) addon including a control panel that enables interaction and manipulation of mock requests within Storybook.
 
+## Features
+
+- Up to date with current MSW version (1.2.1)
+
 ## Installing and Setup
 
 ### Install MSW and the addon

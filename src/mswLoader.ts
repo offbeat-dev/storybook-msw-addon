@@ -1,71 +1,80 @@
-import { SetupWorkerApi, RequestHandler } from "msw";
+import { SetupWorker, RequestHandler, setupWorker, rest } from "msw";
 
-export type SetupApi = SetupWorkerApi;
-export type InitializeOptions = Parameters<SetupWorkerApi["start"]>[0];
+export type SetupApi = SetupWorker;
+export type InitializeOptions = Parameters<SetupWorker["start"]>[0];
 
 export type MswParameters = {
   msw?:
     | RequestHandler[]
-    | { handlers: RequestHandler[] | Record<string, RequestHandler> };
+    | {
+        handlers: RequestHandler[] | Record<string, RequestHandler>;
+        originalResponses: Record<string, any>;
+      };
 };
 
 type Context = {
   parameters: MswParameters;
 };
 
-let api: SetupApi;
-let workerPromise: Promise<unknown> | void;
+let worker: SetupWorker;
+let opt: InitializeOptions;
 
-export async function initialize(
-  options?: InitializeOptions
-): Promise<SetupApi> {
-  const { setupWorker } = await import("msw");
-  const worker = setupWorker();
-  workerPromise = worker.start(options);
-  api = worker;
-  return api;
-}
+export const initialize = async (options?: InitializeOptions) => {
+  console.log("initialize", options);
+  opt = options;
+};
 
-export function getWorker(): SetupApi {
-  if (api === undefined) {
+export function getWorker(): SetupWorker {
+  if (worker === undefined) {
     throw new Error(
       `[MSW] Failed to retrieve the worker: no active worker found. Did you forget to call "initialize"?`
     );
   }
 
-  return api;
+  return worker;
 }
 
 export const mswLoader = async (context: Context) => {
   const {
     parameters: { msw },
   } = context;
+  const worker = typeof global.process === "undefined" && setupWorker();
 
-  let handlers: RequestHandler[] = [];
+  if ("handlers" in msw && msw.handlers) {
+    const handlers = Object.values(msw.handlers)
+      .filter(Boolean)
+      .reduce(
+        (handlers, handlersList) => handlers.concat(handlersList),
+        [] as RequestHandler[]
+      );
 
-  if (api) {
-    api.resetHandlers();
-    if (msw) {
-      if (Array.isArray(msw) && msw.length > 0) {
-        api.use(...msw);
-      } else if ("handlers" in msw && msw.handlers) {
-        handlers = Object.values(msw.handlers)
-          .filter(Boolean)
-          .reduce(
-            (handlers, handlersList) => handlers.concat(handlersList),
-            [] as RequestHandler[]
-          );
+    if (handlers.length > 0) {
+      worker.use(...handlers);
+    }
+    worker.start(opt || {});
 
-        if (handlers.length > 0) {
-          api.use(...handlers);
-        }
-      }
+    (window as any).msw = worker;
+
+    if (!msw.originalResponses) {
+      const responses = await getOriginalResponses(handlers);
+      context.parameters.msw = {
+        ...msw,
+        originalResponses: responses,
+      };
     }
   }
 
-  if (workerPromise) {
-    await workerPromise;
+  return {};
+};
+
+const getOriginalResponses = async (handlers: any[]) => {
+  const originalResponses = {} as Record<string, any>;
+  for (const handler of handlers) {
+    const originalRequest = new Request(handler.info.path);
+    const originalResponse = await fetch(originalRequest);
+    const originalData = await originalResponse.json();
+    originalResponses[handler.info.path] = originalData;
   }
 
-  return {};
+  return originalResponses;
 };

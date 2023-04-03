@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { rest } from "msw";
 import { MockApi } from "./MockApi";
+import { Panel } from "src/Panel";
 
 const results = [
   {

@@ -6,7 +6,7 @@ import type {
 } from "@storybook/types";
 import { STORY_CHANGED, FORCE_REMOUNT } from "@storybook/core-events";
 import { EVENTS, PARAM_KEY } from "./constants";
-import { RequestHandler, context, createResponseComposition, rest } from "msw";
+import { RequestHandler, ResponseFunction } from "msw";
 
 type Context = {
   [x: string]: any;
@@ -34,24 +34,16 @@ const getParameter = (
   return parameters[key] || defaultValue;
 };
 
-export const transformedResponse = (s: number, d: number, r: any) => {
-  return createResponseComposition(null, [context.json(r)]);
-};
-
 const updateHandlers = (handlers: RequestHandler[]) => {
   handlers.forEach((handler: any) => {
     const currentResponse = responses[handler.info.path];
-
-    const worker = (window as any).msw;
-    worker.use(
-      rest.get(handler.info.path, (req, res, ctx) => {
-        return res(
-          ctx.status(status),
-          ctx.delay(delay),
-          ctx.json(currentResponse)
-        );
-      })
-    );
+    handler.resolver = (
+      req: RequestHandler,
+      res: ResponseFunction,
+      ctx: Context
+    ) => {
+      res(ctx.delay(delay), ctx.status(status), ctx.json(currentResponse));
+    };
   });
 };
 
@@ -68,27 +60,35 @@ export const withRoundTrip = (
     handlers = msw.handlers;
     responses = msw.originalResponses;
   }
+  console.log("with round trip", msw);
 
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {
       if (key === "delay") {
+        if (moveTimeout) clearTimeout(moveTimeout);
         delay = value;
         moveTimeout = setTimeout(() => {
           updateHandlers(handlers);
+          const responseObject: ResponseObject = {
+            delay: delay,
+            status: status,
+            responses: responses,
+          };
+          emit(EVENTS.SEND, responseObject);
           channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
         }, 200);
       }
       if (key === "status") {
         status = value;
         updateHandlers(handlers);
+        const responseObject: ResponseObject = {
+          delay: delay,
+          status: status,
+          responses: responses,
+        };
+        emit(EVENTS.SEND, responseObject);
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
-      const responseObject: ResponseObject = {
-        delay: delay,
-        status: status,
-        responses: responses,
-      };
-      emit(EVENTS.SEND, responseObject);
     },
     [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
       if (key === "responses") {
@@ -98,8 +98,8 @@ export const withRoundTrip = (
           status: status,
           responses: responses,
         };
-        updateHandlers(handlers);
         emit(EVENTS.SEND, responseObject);
+        updateHandlers(handlers);
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
     },
@@ -115,6 +115,5 @@ export const withRoundTrip = (
   if (STORY_CHANGED_STATE) {
     STORY_CHANGED_STATE = false;
   }
-
   return storyFn();
 };

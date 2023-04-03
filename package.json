@@ -77,7 +77,7 @@
     "boxen": "^5.0.1",
     "concurrently": "^6.2.0",
     "dedent": "^0.7.0",
-    "msw": "^v0.43.0",
+    "msw": "^1.2.1",
     "prettier": "^2.3.1",
     "prompts": "^2.4.2",
     "prop-types": "^15.8.1",
