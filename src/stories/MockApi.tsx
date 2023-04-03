@@ -25,6 +25,7 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
 
     if (response.status === 200) {
       const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("Data is not an array");
       setResults(data);
       setLoading(false);
     } else {

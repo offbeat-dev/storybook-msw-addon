@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { rest } from "msw";
 import { MockApi } from "./MockApi";
-import { Panel } from "src/Panel";
 
 const results = [
   {
@@ -51,7 +50,7 @@ export const Error: Story = {
     msw: {
       handlers: [
         rest.get("/api/error", (req, res, ctx) => {
-          return res(ctx.json([]), ctx.status(404));
+          return res(ctx.status(404));
         }),
       ],
     },

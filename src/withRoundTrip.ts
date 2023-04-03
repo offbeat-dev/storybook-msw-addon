@@ -4,11 +4,7 @@ import type {
   PartialStoryFn as StoryFunction,
   Parameters,
 } from "@storybook/types";
-import {
-  STORY_CHANGED,
-  FORCE_REMOUNT,
-  FORCE_RE_RENDER,
-} from "@storybook/core-events";
+import { STORY_CHANGED, FORCE_REMOUNT } from "@storybook/core-events";
 import { EVENTS, PARAM_KEY } from "./constants";
 import { RequestHandler, context, createResponseComposition, rest } from "msw";
 
@@ -43,15 +39,17 @@ export const transformedResponse = (s: number, d: number, r: any) => {
 };
 
 const updateHandlers = (handlers: RequestHandler[]) => {
+  if (!handlers) return;
   const worker = (window as any).msw;
   handlers.forEach((handler: any) => {
     const currentResponse = responses[handler.info.path];
+    status = currentResponse.status;
     worker.use(
       rest.get(handler.info.path, (req, res, ctx) => {
         return res(
-          ctx.status(status),
+          ctx.status(currentResponse.status),
           ctx.delay(delay),
-          ctx.json(currentResponse)
+          ctx.json(currentResponse.data)
         );
       })
     );
@@ -65,8 +63,11 @@ export const withRoundTrip = (
   let parameters,
     msw: { handlers: any; originalResponses: Record<string, any> },
     handlers: any;
+
   parameters = ctx.parameters;
   if (parameters) msw = getParameter(parameters, PARAM_KEY, []);
+  if (!msw) return storyFn();
+
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {
       if (key === "delay") {
@@ -79,6 +80,9 @@ export const withRoundTrip = (
       }
       if (key === "status") {
         status = value;
+        Object.keys(responses).forEach((key: any) => {
+          responses[key].status = value;
+        });
         updateHandlers(handlers);
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
@@ -91,14 +95,14 @@ export const withRoundTrip = (
     },
     [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
       if (key === "responses") {
-        responses[objectKey] = objectValue;
+        responses[objectKey].data = objectValue;
         const responseObject: ResponseObject = {
           delay: delay,
           status: status,
           responses: responses,
         };
-        emit(EVENTS.SEND, responseObject);
         updateHandlers(handlers);
+        emit(EVENTS.SEND, responseObject);
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
     },
@@ -107,18 +111,20 @@ export const withRoundTrip = (
   if (INITIAL_MOUNT_STATE) {
     handlers = msw.handlers;
     responses = msw.originalResponses;
-    emit(EVENTS.SEND, { status: 200, delay: 0, responses });
+    updateHandlers(handlers);
+    emit(EVENTS.SEND, { status, delay, responses });
     channel.on(STORY_CHANGED, () => {
-      console.log("STORY_CHANGED", STORY_CHANGED);
       delete msw.originalResponses;
+
       const worker = (window as any).msw;
       worker.stop();
-      delete (window as any).msw;
+
       STORY_CHANGED_STATE = true;
       location.reload();
     });
     INITIAL_MOUNT_STATE = false;
   }
+
   if (STORY_CHANGED_STATE) {
     STORY_CHANGED_STATE = false;
     channel.emit(FORCE_REMOUNT, { storyId: ctx.id });

@@ -60,7 +60,6 @@ export const withRoundTrip = (
     handlers = msw.handlers;
     responses = msw.originalResponses;
   }
-  console.log("with round trip", msw);
 
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {

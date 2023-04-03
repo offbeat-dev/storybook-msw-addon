@@ -35,6 +35,7 @@ export const mswLoader = async (context: Context) => {
   const {
     parameters: { msw },
   } = context;
+  if (!msw) return;
   if (msw.originalResponses || (window as any).msw) return;
   const worker = typeof global.process === "undefined" && setupWorker();
   if ("handlers" in msw && msw.handlers) {
@@ -51,7 +52,6 @@ export const mswLoader = async (context: Context) => {
     worker.start(opt || {});
 
     (window as any).msw = worker;
-
     const responses = await getOriginalResponses(handlers);
     context.parameters.msw = {
       ...msw,
@@ -67,8 +67,13 @@ const getOriginalResponses = async (handlers: any[]) => {
   for (const handler of handlers) {
     const originalRequest = new Request(handler.info.path);
     const originalResponse = await fetch(originalRequest);
-    const originalData = await originalResponse.json();
-    originalResponses[handler.info.path] = originalData;
+    let originalData;
+    if (!originalResponse.ok) originalData = null;
+    else originalData = await originalResponse.json();
+    originalResponses[handler.info.path] = {
+      data: originalData,
+      status: originalResponse.status,
+    };
   }
 
   return originalResponses;

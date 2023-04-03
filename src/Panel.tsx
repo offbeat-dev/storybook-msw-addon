@@ -24,12 +24,12 @@ const ObjectContent = styled.div`
 `;
 
 const Notice = styled.div`
-  background-color: ${({ theme }) => theme.background.app};
-  color: ${({ theme }) => theme.color.gold};
+  color: ${({ theme }) => theme.color.secondary};
   margin-block-start: 1rem;
   padding: 0.5rem;
   border-radius: 5px;
   inline-size: fit-content;
+  font-weight: 400;
 `;
 
 const Container = styled.div`
@@ -70,11 +70,11 @@ const Label = styled.div`
 `;
 
 export const Panel: React.FC<PanelProps> = (props) => {
-  const [data, setState] = useAddonState(ADDON_ID, {} as any);
+  const [addonState, setAddonState] = useAddonState(ADDON_ID, {} as any);
 
   const emit = useChannel({
-    [EVENTS.SEND]: (newData) => {
-      setState({ ...data, ...newData });
+    [EVENTS.SEND]: (newAddonState) => {
+      setAddonState({ ...addonState, ...newAddonState });
     },
   });
 
@@ -91,18 +91,18 @@ export const Panel: React.FC<PanelProps> = (props) => {
   };
 
   const getRender = () => {
-    if (data.delay !== undefined)
+    if (addonState.delay !== undefined && addonState.status !== undefined)
       return (
         <ScrollArea>
           <Container>
             <StatusAndDelayContainer>
               <div>
                 <Label>
-                  <h3>MSW status : {data.status}</h3>
+                  <h3>MSW status : {addonState.status}</h3>
                 </Label>
                 <Select
                   onChange={(event) => onChange("status", event.target.value)}
-                  value={data.status}
+                  value={addonState.status}
                   name="status"
                 >
                   {statusCodes.map((code) => (
@@ -114,11 +114,11 @@ export const Panel: React.FC<PanelProps> = (props) => {
               </div>
               <div>
                 <Label>
-                  <h3>MSW delay : {data.delay} ms</h3>
+                  <h3>MSW delay : {addonState.delay} ms</h3>
                 </Label>
                 <RangeControl
                   name="delay"
-                  value={data.delay}
+                  value={addonState.delay}
                   onChange={(value) => onChange("delay", value)}
                   min={0}
                   max={10000}
@@ -128,16 +128,16 @@ export const Panel: React.FC<PanelProps> = (props) => {
             </StatusAndDelayContainer>
             <ObjectContent>
               <Label>
-                <h3>MSW Handlers and Responses</h3>
+                <h3>MSW handlers and responses</h3>
               </Label>
               <HandlersAndResponses>
-                {data.responses &&
-                  Object.keys(data.responses).length > 0 &&
-                  Object.keys(data.responses).map((key) => (
+                {addonState.responses &&
+                  Object.keys(addonState.responses).length > 0 &&
+                  Object.keys(addonState.responses).map((key) => (
                     <ObjectControl
                       key={key}
                       name={key}
-                      value={data.responses[key]}
+                      value={addonState.responses[key].data}
                       onChange={(value) =>
                         onChangeResponse("responses", key, value)
                       }
@@ -146,7 +146,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
                   ))}
               </HandlersAndResponses>
               <Notice>
-                * Refresh the browser tab to restore original response data
+                * refresh the browser tab to restore original response data.
               </Notice>
             </ObjectContent>
           </Container>
