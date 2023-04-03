@@ -1,3 +1,15 @@
+# v0.3.2 (Mon Apr 03 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :hammer: -- udpate msw to 1.2.1 and fix response delay bug ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.1 (Sat Apr 01 2023)
 
 #### ⚠️ Pushed to `main`
