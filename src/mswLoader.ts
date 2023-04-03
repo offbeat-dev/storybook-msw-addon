@@ -35,7 +35,7 @@ export const mswLoader = async (context: Context) => {
   const {
     parameters: { msw },
   } = context;
-  if (msw.originalResponses) return;
+  if (msw.originalResponses || (window as any).msw) return;
   const worker = typeof global.process === "undefined" && setupWorker();
   if ("handlers" in msw && msw.handlers) {
     const handlers = Object.values(msw.handlers)

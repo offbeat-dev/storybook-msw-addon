@@ -41,3 +41,19 @@ export const Default: Story = {
     },
   },
 };
+
+export const Error: Story = {
+  args: {
+    heading: "Mock API",
+    endpoint: "/api/error",
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        rest.get("/api/error", (req, res, ctx) => {
+          return res(ctx.json([]), ctx.status(404));
+        }),
+      ],
+    },
+  },
+};
