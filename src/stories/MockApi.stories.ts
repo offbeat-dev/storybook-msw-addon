@@ -16,7 +16,7 @@ const results = [
 ];
 
 const meta: Meta<typeof MockApi> = {
-  title: "Mock API",
+  title: "Example/Mock API",
   component: MockApi,
   tags: ["autodocs"],
 };

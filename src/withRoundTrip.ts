@@ -4,7 +4,11 @@ import type {
   PartialStoryFn as StoryFunction,
   Parameters,
 } from "@storybook/types";
-import { STORY_CHANGED, FORCE_REMOUNT } from "@storybook/core-events";
+import {
+  STORY_CHANGED,
+  FORCE_REMOUNT,
+  STORY_ARGS_UPDATED,
+} from "@storybook/core-events";
 import { EVENTS, PARAM_KEY } from "./constants";
 import { RequestHandler, context, createResponseComposition, rest } from "msw";
 
@@ -113,8 +117,12 @@ export const withRoundTrip = (
     responses = msw.originalResponses;
     updateHandlers(handlers);
     emit(EVENTS.SEND, { status, delay, responses });
+    channel.on(STORY_ARGS_UPDATED, () => {
+      delete (window as any).msw.originalResponses;
+      location.reload();
+    });
     channel.on(STORY_CHANGED, () => {
-      delete msw.originalResponses;
+      delete (window as any).msw.originalResponses;
 
       worker.stop();
 
