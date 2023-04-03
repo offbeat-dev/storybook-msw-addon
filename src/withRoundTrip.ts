@@ -63,10 +63,10 @@ export const withRoundTrip = (
   let parameters,
     msw: { handlers: any; originalResponses: Record<string, any> },
     handlers: any;
-
+  const worker = (window as any).msw;
   parameters = ctx.parameters;
   if (parameters) msw = getParameter(parameters, PARAM_KEY, []);
-  if (!msw) return storyFn();
+  if (!msw || !worker) return storyFn();
 
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {
@@ -116,7 +116,6 @@ export const withRoundTrip = (
     channel.on(STORY_CHANGED, () => {
       delete msw.originalResponses;
 
-      const worker = (window as any).msw;
       worker.stop();
 
       STORY_CHANGED_STATE = true;
