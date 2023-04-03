@@ -1,3 +1,15 @@
+# v0.3.6 (Mon Apr 03 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :hammer: -- handle 404 and status updates ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.5 (Mon Apr 03 2023)
 
 #### ⚠️ Pushed to `main`
