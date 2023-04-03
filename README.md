@@ -24,13 +24,13 @@ An MSW (Mock Service Worker) addon including a control panel that enables intera
 With npm:
 
 ```sh
-npm i msw @offbeat-dev/storybook-msw-addon -D
+npm i msw storybook-msw-addon -D
 ```
 
 Or with yarn:
 
 ```sh
-yarn add msw @offbeat-dev/storybook-msw-addon -D
+yarn add msw storybook-msw-addon -D
 ```
 
 ### Generate service worker for MSW in a project folder.
