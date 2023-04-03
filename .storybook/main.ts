@@ -1,4 +1,5 @@
 import type { StorybookConfig } from "@storybook/react-vite";
+import path from "path";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|ts|tsx)"],
@@ -13,6 +14,7 @@ const config: StorybookConfig = {
     name: "@storybook/react-vite",
     options: {},
   },
+  staticDirs: [path.resolve("public").replace(/\\/g, "/")],
   docs: {
     autodocs: "tag",
   },

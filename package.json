@@ -62,7 +62,8 @@
     "release": "yarn build && auto shipit",
     "eject-ts": "zx scripts/eject-typescript.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "serve-storybook": "npx http-server storybook-static -p 5005"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.0.2",
@@ -130,6 +131,6 @@
     "icon": "https://raw.githubusercontent.com/offbeat-dev/storybook-msw-addon/main/storybook-msw-addon.png"
   },
   "msw": {
-    "workerDirectory": ""
+    "workerDirectory": "public"
   }
 }
