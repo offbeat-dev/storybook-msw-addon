@@ -1,3 +1,16 @@
+# v0.3.3 (Mon Apr 03 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of https://github.com/offbeat-dev/msw-storybook-addon ([@offbeat-dev](https://github.com/offbeat-dev))
+- :bug: -- fix bug with responses on story rerender ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.2 (Mon Apr 03 2023)
 
 #### ⚠️ Pushed to `main`
