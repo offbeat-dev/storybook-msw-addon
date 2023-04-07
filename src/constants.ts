@@ -6,5 +6,5 @@ export const EVENTS = {
   SEND: `${ADDON_ID}/send`,
   UPDATE: `${ADDON_ID}/update`,
   UPDATE_RESPONSES: `${ADDON_ID}/update-responses`,
-  CLEAR: `${ADDON_ID}/clear`,
+  RESET: `${ADDON_ID}/reset`,
 };

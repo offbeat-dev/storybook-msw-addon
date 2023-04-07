@@ -110,6 +110,11 @@ export const withRoundTrip = (
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
     },
+    [EVENTS.RESET]: () => {
+      delete (window as any).msw.originalResponses;
+      worker.stop();
+      location.reload();
+    },
   });
 
   if (INITIAL_MOUNT_STATE) {

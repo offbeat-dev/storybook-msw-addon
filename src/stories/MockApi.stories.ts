@@ -36,6 +36,9 @@ export const Default: Story = {
         rest.get("/api/user", (req, res, ctx) => {
           return res(ctx.json(results));
         }),
+        rest.get("/api/login", (req, res, ctx) => {
+          return res(ctx.json(results));
+        }),
       ],
     },
   },
