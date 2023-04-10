@@ -1,3 +1,16 @@
+# v0.3.13 (Mon Apr 10 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :sparkles: -- add support for rendering docs with right API calls ([@offbeat-dev](https://github.com/offbeat-dev))
+- :construction: -- wip support docs rendering skip ci ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.12 (Fri Apr 07 2023)
 
 #### ⚠️ Pushed to `main`
