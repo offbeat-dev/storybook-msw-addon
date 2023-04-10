@@ -38,11 +38,22 @@ export const mswLoader = async (context: Context) => {
     viewMode,
   } = context;
 
+  
+  
   if (!msw) return;
   if (msw.originalResponses || ((window as any).msw && viewMode !== "docs"))
     return;
 
-  const worker = typeof global.process === "undefined" && setupWorker();
+
+  let worker;
+
+  if(viewMode === "docs" && (window as any).msw) {
+    worker = typeof global.process === "undefined" && (window as any).msw;
+  } else {
+    worker = typeof global.process === "undefined" && setupWorker();
+  }
+
+
   if ("handlers" in msw && msw.handlers) {
     const handlers = Object.values(msw.handlers)
       .filter(Boolean)
