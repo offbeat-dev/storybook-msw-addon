@@ -1,5 +1,6 @@
 import type { Preview } from "@storybook/react";
 import { initialize, mswLoader } from "../dist/index.mjs";
+import "../src/styles/globals.scss";
 
 initialize({
   onUnhandledRequest: "bypass",

@@ -22,12 +22,16 @@ const Container = styled.div`
     border-block-start: 1px solid ${({ theme }) => theme.appBorderColor};
   }
 
+  & > div:last-child {
+    border-block-end: 1px solid ${({ theme }) => theme.appBorderColor};
+  }
+
   & > div {
     padding-block: 2rem;
     padding-inline: 1rem;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 1rem;
   }
 
@@ -65,6 +69,7 @@ const SBButton = styled(Button)`
 
 export const Panel: React.FC<PanelProps> = (props) => {
   const [addonState, setAddonState] = useAddonState(ADDON_ID, {} as any);
+
   const [dataHasChanged, setDataHasChanged] = React.useState(false);
 
   const emit = useChannel({
@@ -92,7 +97,11 @@ export const Panel: React.FC<PanelProps> = (props) => {
   };
 
   const getRender = () => {
-    if (addonState.delay !== undefined && addonState.status !== undefined)
+    if (
+      addonState.delay !== undefined &&
+      addonState.status !== undefined &&
+      addonState.responses !== undefined
+    )
       return (
         <ScrollArea>
           <Container>
@@ -136,9 +145,8 @@ export const Panel: React.FC<PanelProps> = (props) => {
                 {addonState.responses &&
                   Object.keys(addonState.responses).length > 0 &&
                   Object.keys(addonState.responses).map((key) => (
-                    <ObjectControlContainer>
+                    <ObjectControlContainer key={key}>
                       <ObjectControl
-                        key={key}
                         name={key}
                         value={addonState.responses[key].data}
                         onChange={(value) =>
@@ -166,7 +174,11 @@ export const Panel: React.FC<PanelProps> = (props) => {
           </Container>
         </ScrollArea>
       );
-    return <div>No mock data.</div>;
+    return (
+      <Container>
+        <Label>No mock data.</Label>
+      </Container>
+    );
   };
 
   return (

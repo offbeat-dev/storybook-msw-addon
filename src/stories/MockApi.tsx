@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import "./mock-api.scss";
 
 type MockApiProps = {
@@ -7,10 +7,10 @@ type MockApiProps = {
 };
 
 type MockApiResult = {
-  id: number;
+  episode_id: number;
   title: string;
-  tags?: string[];
-  image?: string;
+  opening_crawl: string;
+  producer: string;
 };
 
 export const MockApi = ({ heading, endpoint }: MockApiProps) => {
@@ -25,8 +25,7 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
 
     if (response.status === 200) {
       const data = await response.json();
-      if (!Array.isArray(data)) throw new Error("Data is not an array");
-      setResults(data);
+      setResults(data.results);
       setLoading(false);
     } else {
       setError(
@@ -49,25 +48,33 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
   }
 
   return (
-    <>
+    <div className="storybook-mock-api">
       <h2>{heading}</h2>
       {error && <p>{error}</p>}
       {(!results || results?.length === 0) && <p>No results found</p>}
       {results && results.length > 0 && (
-        <ul>
+        <ul className="storybook-mock-api__items ">
           {results.map((result) => (
-            <li key={result.id}>
-              <div>
-                <h3>{result.title}</h3>
-                <ul>
-                  {result.tags &&
-                    result.tags.map((tag, idx) => <li key={idx}>{tag}</li>)}
-                </ul>
-              </div>
+            <li key={result.episode_id} className="storybook-mock-api__item">
+              <h3 className="storybook-mock-api__item-title">{result.title}</h3>
+              <p className="storybook-mock-api__item-description">
+                {result.opening_crawl}
+              </p>
+              <ul className="storybook-mock-api__tags">
+                {result.producer &&
+                  result.producer.split(",").map((producer, idx) => {
+                    return (
+                      <Fragment key={idx}>
+                        <li className="storybook-mock-api__tag">{producer}</li>
+                        {idx < result.producer.split(",").length - 1 && "|"}
+                      </Fragment>
+                    );
+                  })}
+              </ul>
             </li>
           ))}
         </ul>
       )}
-    </>
+    </div>
   );
 };

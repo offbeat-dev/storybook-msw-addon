@@ -12,6 +12,7 @@ export type MswParameters = {
 
 type Context = {
   parameters: MswParameters;
+  viewMode: string;
 };
 
 let worker: SetupWorker;
@@ -34,9 +35,13 @@ export function getWorker(): SetupWorker {
 export const mswLoader = async (context: Context) => {
   const {
     parameters: { msw },
+    viewMode,
   } = context;
+
   if (!msw) return;
-  if (msw.originalResponses || (window as any).msw) return;
+  if (msw.originalResponses || ((window as any).msw && viewMode !== "docs"))
+    return;
+
   const worker = typeof global.process === "undefined" && setupWorker();
   if ("handlers" in msw && msw.handlers) {
     const handlers = Object.values(msw.handlers)

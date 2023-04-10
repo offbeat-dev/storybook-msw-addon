@@ -1,42 +1,37 @@
-.storybook-button {
-  font-family: "Nunito Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: 700;
-  border: 0;
-  border-radius: 3em;
-  cursor: pointer;
-  display: inline-block;
-  line-height: 1;
-}
-.storybook-button--primary {
-  color: white;
-  background-color: #1ea7fd;
-}
-.storybook-button--secondary {
-  color: #333;
-  background-color: transparent;
-  box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;
-}
-.storybook-button--small {
-  font-size: 12px;
-  padding: 10px 16px;
-}
-.storybook-button--medium {
-  font-size: 14px;
-  padding: 11px 20px;
-}
-.storybook-button--large {
-  font-size: 16px;
-  padding: 12px 24px;
+.storybook-mock-api {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-.storybook-mock-api {
-  margin-block: 40px;
+.storybook-mock-api__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, auto));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.storybook-mock-api__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 20px 0;
+  list-style: none;
 }
 
 .storybook-mock-api__item {
   block-size: 100%;
-  border: 1px solid red;
+  color: white;
+  background-color: black;
+  border-radius: 10px;
   padding: 25px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.storybook-mock-api__item-title {
+  font-weight: bold;
+}
+.storybook-mock-api__item-description {
+  flex-grow: 1;
 }
 
 .storybook-mock-api__loader {

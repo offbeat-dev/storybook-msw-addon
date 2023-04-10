@@ -70,7 +70,6 @@ export const withRoundTrip = (
   const worker = (window as any).msw;
   parameters = ctx.parameters;
   if (parameters) msw = getParameter(parameters, PARAM_KEY, []);
-  if (!msw || !worker) return storyFn();
 
   const emit = useChannel({
     [EVENTS.UPDATE]: ({ key, value }) => {
@@ -117,6 +116,16 @@ export const withRoundTrip = (
     },
   });
 
+  if (!msw || !worker) {
+    emit(EVENTS.SEND, {
+      status: undefined,
+      delay: undefined,
+      responses: undefined,
+    });
+
+    return storyFn();
+  }
+
   if (INITIAL_MOUNT_STATE) {
     handlers = msw.handlers;
     responses = msw.originalResponses;
@@ -128,7 +137,6 @@ export const withRoundTrip = (
     });
     channel.on(STORY_CHANGED, () => {
       delete (window as any).msw.originalResponses;
-
       worker.stop();
 
       STORY_CHANGED_STATE = true;
