@@ -51,7 +51,7 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
     <div className="storybook-mock-api">
       <h2>{heading}</h2>
       {error && <p>{error}</p>}
-      {(!results || results?.length === 0) && <p>No results found</p>}
+      {(!results || results?.length === 0 && !error)  && <p>No results found</p>}
       {results && results.length > 0 && (
         <ul className="storybook-mock-api__items ">
           {results.map((result) => (

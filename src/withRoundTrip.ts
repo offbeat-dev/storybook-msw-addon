@@ -10,7 +10,7 @@ import {
   STORY_ARGS_UPDATED,
 } from "@storybook/core-events";
 import { EVENTS, PARAM_KEY } from "./constants";
-import { RequestHandler, context, createResponseComposition, rest } from "msw";
+import { RequestHandler, rest } from "msw";
 
 type Context = {
   [x: string]: any;
@@ -38,10 +38,6 @@ const getParameter = (
   return parameters[key] || defaultValue;
 };
 
-export const transformedResponse = (s: number, d: number, r: any) => {
-  return createResponseComposition(null, [context.json(r)]);
-};
-
 const updateHandlers = (handlers: RequestHandler[]) => {
   if (!handlers || !responses) return;
   const worker = (window as any).msw;
@@ -67,7 +63,9 @@ export const withRoundTrip = (
   let parameters,
     msw: { handlers: any; originalResponses: Record<string, any> },
     handlers: any;
+
   const worker = (window as any).msw;
+
   parameters = ctx.parameters;
   if (parameters) msw = getParameter(parameters, PARAM_KEY, []);
 

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { rest } from "msw";
 import { MockApi } from "./MockApi";
 
+const endpoint = "https://swapi.dev/api/films/";
 const results = [
   {
     episode_id: 4,
@@ -39,19 +40,19 @@ type Story = StoryObj<typeof MockApi>;
 export const DefaultBehavior: Story = {
   args: {
     heading: "Mock API",
-    endpoint: "https://swapi.dev/api/films/",
+    endpoint: endpoint,
   },
 };
 
 export const MockedSuccess: Story = {
   args: {
     heading: "Mock API",
-    endpoint: "/api/user",
+    endpoint: endpoint,
   },
   parameters: {
     msw: {
       handlers: [
-        rest.get("/api/user", (req, res, ctx) => {
+        rest.get(endpoint, (req, res, ctx) => {
           return res(ctx.json({ results: results }));
         }),
       ],
@@ -62,13 +63,13 @@ export const MockedSuccess: Story = {
 export const MockedError: Story = {
   args: {
     heading: "Mock API",
-    endpoint: "/api/error",
+    endpoint: endpoint,
   },
   parameters: {
     msw: {
       handlers: [
-        rest.get("/api/error", (req, res, ctx) => {
-          return res(ctx.status(403));
+        rest.get(endpoint, (req, res, ctx) => {
+          return res(ctx.status(405));
         }),
       ],
     },

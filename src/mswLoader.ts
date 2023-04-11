@@ -1,11 +1,11 @@
-import { SetupWorker, RequestHandler, setupWorker, rest } from "msw";
+import { SetupWorker, RequestHandler, setupWorker } from "msw";
 
 export type SetupApi = SetupWorker;
 export type InitializeOptions = Parameters<SetupWorker["start"]>[0];
 
 export type MswParameters = {
   msw?: {
-    handlers: RequestHandler[] | Record<string, RequestHandler>;
+    handlers: any[];
     originalResponses: Record<string, any>;
   };
 };
@@ -13,6 +13,9 @@ export type MswParameters = {
 type Context = {
   parameters: MswParameters;
   viewMode: string;
+  args: Record<string, any>;
+  allArgs: Record<string, any>;
+  initialArgs: Record<string, any>;
 };
 
 let worker: SetupWorker;
@@ -37,13 +40,11 @@ export const mswLoader = async (context: Context) => {
     parameters: { msw },
     viewMode,
   } = context;
-
   if (!msw) return;
   if (msw.originalResponses || ((window as any).msw && viewMode !== "docs"))
     return;
 
   let worker;
-
   if (viewMode === "docs" && (window as any).msw) {
     worker = typeof global.process === "undefined" && (window as any).msw;
   } else {
@@ -58,10 +59,35 @@ export const mswLoader = async (context: Context) => {
         [] as RequestHandler[]
       );
 
+    handlers.forEach((handler: any) => {
+      const modifiedPath =
+        handler.info.path.replace(/\/$/, "") + `/${self.crypto.randomUUID()}`;
+      Object.keys(context.args).forEach((key) => {
+        if (context.args[key] === handler.info.path) {
+          context.args[key] = modifiedPath;
+        }
+      });
+      Object.keys(context.allArgs).forEach((key) => {
+        if (context.allArgs[key] === handler.info.path) {
+          context.allArgs[key] = modifiedPath;
+        }
+      });
+      Object.keys(context.initialArgs).forEach((key) => {
+        if (context.initialArgs[key] === handler.info.path) {
+          context.initialArgs[key] = modifiedPath;
+        }
+      });
+      handler.info.header = handler.info.header.replace(
+        handler.info.path,
+        modifiedPath
+      );
+      handler.info.path = modifiedPath;
+    });
+
     if (handlers.length > 0) {
       worker.use(...handlers);
     }
-    if (!worker.active) worker.start(opt || {});
+    if (!(window as any).msw) worker.start(opt || {});
 
     (window as any).msw = worker;
     const responses = await getOriginalResponses(handlers);
