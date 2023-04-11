@@ -1,3 +1,15 @@
+# v0.3.15 (Tue Apr 11 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :wrench: -- test fix for docs endpoints ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.14 (Tue Apr 11 2023)
 
 #### ⚠️ Pushed to `main`
