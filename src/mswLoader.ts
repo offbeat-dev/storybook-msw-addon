@@ -38,21 +38,17 @@ export const mswLoader = async (context: Context) => {
     viewMode,
   } = context;
 
-  
-  
   if (!msw) return;
   if (msw.originalResponses || ((window as any).msw && viewMode !== "docs"))
     return;
 
-
   let worker;
 
-  if(viewMode === "docs" && (window as any).msw) {
+  if (viewMode === "docs" && (window as any).msw) {
     worker = typeof global.process === "undefined" && (window as any).msw;
   } else {
     worker = typeof global.process === "undefined" && setupWorker();
   }
-
 
   if ("handlers" in msw && msw.handlers) {
     const handlers = Object.values(msw.handlers)
@@ -65,7 +61,7 @@ export const mswLoader = async (context: Context) => {
     if (handlers.length > 0) {
       worker.use(...handlers);
     }
-    worker.start(opt || {});
+    if (!worker.active) worker.start(opt || {});
 
     (window as any).msw = worker;
     const responses = await getOriginalResponses(handlers);
