@@ -130,6 +130,7 @@ export const withRoundTrip = (
     updateHandlers(handlers);
     emit(EVENTS.SEND, { status, delay, responses });
     channel.on(STORY_ARGS_UPDATED, () => {
+      if (ctx.viewMode === "docs") return;
       delete (window as any).msw.originalResponses;
       location.reload();
     });
