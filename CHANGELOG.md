@@ -1,3 +1,15 @@
+# v0.3.16 (Tue Apr 11 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :wrench: -- fix reload on docs args changed ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.15 (Tue Apr 11 2023)
 
 #### ⚠️ Pushed to `main`
