@@ -52,37 +52,18 @@ export const mswLoader = async (context: Context) => {
   }
 
   if ("handlers" in msw && msw.handlers) {
-    const handlers = Object.values(msw.handlers)
+    let handlers = Object.values(msw.handlers)
       .filter(Boolean)
       .reduce(
         (handlers, handlersList) => handlers.concat(handlersList),
         [] as RequestHandler[]
       );
-
-    handlers.forEach((handler: any) => {
-      const modifiedPath =
-        handler.info.path.replace(/\/$/, "") + `/${self.crypto.randomUUID()}`;
-      Object.keys(context.args).forEach((key) => {
-        if (context.args[key] === handler.info.path) {
-          context.args[key] = modifiedPath;
-        }
-      });
-      Object.keys(context.allArgs).forEach((key) => {
-        if (context.allArgs[key] === handler.info.path) {
-          context.allArgs[key] = modifiedPath;
-        }
-      });
-      Object.keys(context.initialArgs).forEach((key) => {
-        if (context.initialArgs[key] === handler.info.path) {
-          context.initialArgs[key] = modifiedPath;
-        }
-      });
-      handler.info.header = handler.info.header.replace(
-        handler.info.path,
-        modifiedPath
-      );
-      handler.info.path = modifiedPath;
-    });
+    if (viewMode === "docs") {
+      const { handlers: modifiedHandlers, context: modifiedContext } =
+        modifyHandlersAndArgs(handlers, context);
+      handlers = modifiedHandlers;
+      context = modifiedContext;
+    }
 
     if (handlers.length > 0) {
       worker.use(...handlers);
@@ -98,6 +79,35 @@ export const mswLoader = async (context: Context) => {
   }
 
   return {};
+};
+
+const modifyHandlersAndArgs = (handlers: any, context: Context) => {
+  handlers.forEach((handler: any) => {
+    const modifiedPath =
+      handler.info.path.replace(/\/$/, "") + `/${self.crypto.randomUUID()}`;
+    Object.keys(context.args).forEach((key) => {
+      if (context.args[key] === handler.info.path) {
+        context.args[key] = modifiedPath;
+      }
+    });
+    Object.keys(context.allArgs).forEach((key) => {
+      if (context.allArgs[key] === handler.info.path) {
+        context.allArgs[key] = modifiedPath;
+      }
+    });
+    Object.keys(context.initialArgs).forEach((key) => {
+      if (context.initialArgs[key] === handler.info.path) {
+        context.initialArgs[key] = modifiedPath;
+      }
+    });
+    handler.info.header = handler.info.header.replace(
+      handler.info.path,
+      modifiedPath
+    );
+    handler.info.path = modifiedPath;
+  });
+
+  return { handlers: handlers, context: context };
 };
 
 const getOriginalResponses = async (handlers: any[]) => {
