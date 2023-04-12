@@ -1,3 +1,15 @@
+# v0.3.18 (Wed Apr 12 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :sparkles: -- sytle fixes ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.17 (Wed Apr 12 2023)
 
 #### ⚠️ Pushed to `main`
