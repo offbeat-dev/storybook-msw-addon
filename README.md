@@ -2,7 +2,9 @@
 
 #
 
-<img src="https://raw.githubusercontent.com/offbeat-dev/storybook-msw-addon/main/addon-panel-image.png">
+<p align="center">
+<img src="https://raw.githubusercontent.com/offbeat-dev/storybook-msw-addon/main/storybook-msw-addon.gif">
+</p>
 
 #
 
