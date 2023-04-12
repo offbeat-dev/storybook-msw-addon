@@ -39,14 +39,14 @@ type Story = StoryObj<typeof MockApi>;
 
 export const DefaultBehavior: Story = {
   args: {
-    heading: "Mock API",
+    heading: "Original Endpoint",
     endpoint: endpoint,
   },
 };
 
 export const MockedSuccess: Story = {
   args: {
-    heading: "Mock API",
+    heading: "Mocked Success",
     endpoint: endpoint,
   },
   parameters: {
@@ -62,14 +62,14 @@ export const MockedSuccess: Story = {
 
 export const MockedError: Story = {
   args: {
-    heading: "Mock API",
+    heading: "Mocked Server Error",
     endpoint: endpoint,
   },
   parameters: {
     msw: {
       handlers: [
         rest.get(endpoint, (req, res, ctx) => {
-          return res(ctx.status(405));
+          return res(ctx.status(500));
         }),
       ],
     },

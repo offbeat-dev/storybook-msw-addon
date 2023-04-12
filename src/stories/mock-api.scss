@@ -48,8 +48,8 @@
     &::after {
       animation: loader-dual-ring 1.2s linear infinite;
       block-size: 64px;
-      border: 6px solid red;
-      border-color: red transparent blue transparent;
+      border: 6px solid #ff4785;
+      border-color: #ff4785 transparent #000000 transparent;
       border-radius: 50%;
       content: "";
       display: block;
