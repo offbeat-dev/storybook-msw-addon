@@ -142,7 +142,7 @@ export const withRoundTrip = (
       location.reload();
     });
     INITIAL_MOUNT_STATE = false;
-    channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
+    //channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
   }
 
   if (STORY_CHANGED_STATE) {
