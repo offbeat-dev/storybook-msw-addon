@@ -1,3 +1,15 @@
+# v0.3.21 (Fri Jul 28 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :wrench: -- fix issue with double refetch ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.20 (Wed Apr 12 2023)
 
 #### ⚠️ Pushed to `main`
