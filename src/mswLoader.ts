@@ -1,4 +1,5 @@
-import { SetupWorker, RequestHandler, setupWorker } from "msw";
+// import { SetupWorker, RequestHandler, setupWorker } from "msw";
+import { setupWorker, SetupWorker} from 'msw/browser';
 
 export type SetupApi = SetupWorker;
 export type InitializeOptions = Parameters<SetupWorker["start"]>[0];
@@ -56,7 +57,7 @@ export const mswLoader = async (context: Context) => {
       .filter(Boolean)
       .reduce(
         (handlers, handlersList) => handlers.concat(handlersList),
-        [] as RequestHandler[]
+        [] as unknown[]
       );
     if (viewMode === "docs") {
       const { handlers: modifiedHandlers, context: modifiedContext } =

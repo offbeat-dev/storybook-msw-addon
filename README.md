@@ -78,7 +78,7 @@ npm run start-storybook -s ${path to project folder initialized by msw}
 The pass request handlers (https://mswjs.io/docs/basics/request-handler) into the `handlers` property of the `msw` parameter. This is commonly an array of handlers.
 
 ```js
-import { rest } from "msw";
+import { http } from "msw";
 
 export const SuccessBehavior = () => <UserProfile />;
 
