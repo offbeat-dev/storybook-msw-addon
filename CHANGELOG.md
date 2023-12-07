@@ -1,3 +1,15 @@
+# v0.3.22 (Thu Dec 07 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :wrench: - update storybook to v7.6.4 ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.21 (Fri Jul 28 2023)
 
 #### ⚠️ Pushed to `main`
