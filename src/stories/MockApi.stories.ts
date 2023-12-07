@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { rest } from "msw";
+import { HttpResponse, http} from "msw";
 import { MockApi } from "./MockApi";
 
 const endpoint = "https://swapi.dev/api/films/";
@@ -52,8 +52,8 @@ export const MockedSuccess: Story = {
   parameters: {
     msw: {
       handlers: [
-        rest.get(endpoint, (req, res, ctx) => {
-          return res(ctx.json({ results: results }));
+        http.get(endpoint, () => {
+          return HttpResponse.json({ results: results });
         }),
       ],
     },
@@ -68,8 +68,8 @@ export const MockedError: Story = {
   parameters: {
     msw: {
       handlers: [
-        rest.get(endpoint, (req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get(endpoint, () => {
+          return new HttpResponse(null, {status: 404})
         }),
       ],
     },

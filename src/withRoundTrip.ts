@@ -10,7 +10,7 @@ import {
   STORY_ARGS_UPDATED,
 } from "@storybook/core-events";
 import { EVENTS, PARAM_KEY } from "./constants";
-import { RequestHandler, rest } from "msw";
+import { RequestHandler, http, delay, HttpResponse } from "msw";
 
 type Context = {
   [x: string]: any;
@@ -25,7 +25,7 @@ const channel = addons.getChannel();
 
 let INITIAL_MOUNT_STATE = true;
 let STORY_CHANGED_STATE = false;
-let delay = 0;
+let responseDelay = 0;
 let status = 200;
 let responses: Record<string, any> = {};
 let moveTimeout: any;
@@ -45,12 +45,12 @@ const updateHandlers = (handlers: RequestHandler[]) => {
     const currentResponse = responses[handler.info.path];
     status = currentResponse.status;
     worker.use(
-      rest.get(handler.info.path, (req, res, ctx) => {
-        return res(
-          ctx.status(currentResponse.status),
-          ctx.delay(delay),
-          ctx.json(currentResponse.data)
-        );
+      http.get(handler.info.path, async() => {
+
+        await delay(responseDelay);
+        return  HttpResponse.json(currentResponse.data, {status: currentResponse.status});
+
+       
       })
     );
   });
@@ -73,7 +73,7 @@ export const withRoundTrip = (
     [EVENTS.UPDATE]: ({ key, value }) => {
       if (key === "delay") {
         clearTimeout(moveTimeout);
-        delay = value;
+        responseDelay = value;
         updateHandlers(handlers);
         moveTimeout = setTimeout(() => {
           channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
@@ -88,7 +88,7 @@ export const withRoundTrip = (
         channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
       }
       const responseObject: ResponseObject = {
-        delay: delay,
+        delay: responseDelay,
         status: status,
         responses: responses,
       };
@@ -98,7 +98,7 @@ export const withRoundTrip = (
       if (key === "responses") {
         responses[objectKey].data = objectValue;
         const responseObject: ResponseObject = {
-          delay: delay,
+          delay: responseDelay,
           status: status,
           responses: responses,
         };
@@ -128,7 +128,7 @@ export const withRoundTrip = (
     handlers = msw.handlers;
     responses = msw.originalResponses;
     updateHandlers(handlers);
-    emit(EVENTS.SEND, { status, delay, responses });
+    emit(EVENTS.SEND, { status, delay: responseDelay, responses });
     channel.on(STORY_ARGS_UPDATED, () => {
       if (ctx.viewMode === "docs") return;
       delete (window as any).msw.originalResponses;
