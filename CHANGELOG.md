@@ -1,3 +1,18 @@
+# v0.3.23 (Wed Dec 13 2023)
+
+#### ⚠️ Pushed to `main`
+
+- :wrench: -- check node version ([@offbeat-dev](https://github.com/offbeat-dev))
+- Update release.yml ([@offbeat-dev](https://github.com/offbeat-dev))
+- :wrench: -- update resolutions version ([@offbeat-dev](https://github.com/offbeat-dev))
+- :sparkles: -- update to msw 2.0.10 ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.22 (Thu Dec 07 2023)
 
 #### ⚠️ Pushed to `main`
