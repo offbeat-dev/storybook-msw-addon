@@ -1,6 +1,4 @@
 module.exports = {
-  repositoryUrl:
-    "https://verndale@dev.azure.com/verndale/V00066-Verndale/_git/Animation_Framework_FE",
   branches: [
     {
       name: "main",
