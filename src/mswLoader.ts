@@ -28,7 +28,7 @@ export const initialize = async (options?: InitializeOptions) => {
 export function getWorker(): SetupWorker {
   if (worker === undefined) {
     throw new Error(
-      `[MSW] Failed to retrieve the worker: no active worker found. Did you forget to call "initialize"?`
+      `[MSW] Failed to retrieve the worker: no active worker found. Did you forget to call "initialize"?`,
     );
   }
 
@@ -56,7 +56,7 @@ export const mswLoader = async (context: Context) => {
       .filter(Boolean)
       .reduce(
         (handlers, handlersList) => handlers.concat(handlersList),
-        [] as unknown[]
+        [] as unknown[],
       );
     if (viewMode === "docs") {
       const { handlers: modifiedHandlers, context: modifiedContext } =
@@ -68,7 +68,7 @@ export const mswLoader = async (context: Context) => {
     if (handlers.length > 0) {
       worker.use(...handlers);
     }
-    if (!(window as any).msw) worker.start(opt || {});
+    if (!(window as any).msw) await worker.start(opt || {});
 
     (window as any).msw = worker;
     const responses = await getOriginalResponses(handlers);
@@ -102,7 +102,7 @@ const modifyHandlersAndArgs = (handlers: any, context: Context) => {
     });
     handler.info.header = handler.info.header.replace(
       handler.info.path,
-      modifiedPath
+      modifiedPath,
     );
     handler.info.path = modifiedPath;
   });
