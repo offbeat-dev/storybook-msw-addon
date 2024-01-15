@@ -1,3 +1,15 @@
+# v0.3.25 (Mon Jan 15 2024)
+
+#### ⚠️ Pushed to `main`
+
+- feat: update readme with msw 2.1.0 example ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.24 (Mon Jan 15 2024)
 
 #### ⚠️ Pushed to `main`
