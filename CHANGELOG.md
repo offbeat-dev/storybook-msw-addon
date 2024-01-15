@@ -1,3 +1,15 @@
+# v0.3.24 (Mon Jan 15 2024)
+
+#### ⚠️ Pushed to `main`
+
+- :rocket: -- update to msw 2.1.0 ([@offbeat-dev](https://github.com/offbeat-dev))
+
+#### Authors: 1
+
+- [@offbeat-dev](https://github.com/offbeat-dev)
+
+---
+
 # v0.3.23 (Wed Dec 13 2023)
 
 #### ⚠️ Pushed to `main`
