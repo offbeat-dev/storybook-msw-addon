@@ -17,7 +17,7 @@ An MSW (Mock Service Worker) addon including a control panel that enables intera
 
 ## Features
 
-- Up to date with current MSW version (1.2.1)
+- Up to date with current MSW version (2.1.0)
 
 ## Installing and Setup
 
@@ -85,13 +85,8 @@ export const SuccessBehavior = () => <UserProfile />;
 SuccessBehavior.parameters = {
   msw: {
     handlers: [
-      rest.get("/user", (req, res, ctx) => {
-        return res(
-          ctx.json({
-            firstName: "Neil",
-            lastName: "Maverick",
-          })
-        );
+      http.get(endpoint, () => {
+        return HttpResponse.json({ results: results });
       }),
     ],
   },
