@@ -22,12 +22,19 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
 
-      - name: Create Release
+      - name: Create Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          yarn release
+          npx semantic-release
+
+      # - name: Create Release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #   run: |
+      #     yarn release
 
       # - name: Publish to Github Packages
       #   uses: actions/setup-node@v3
