@@ -12,10 +12,10 @@ jobs:
       - name: Prepare repository
         run: git fetch --unshallow --tags
 
-      - name: Use Node.js 18.17.0
+      - name: Use Node.js 20.10.0
         uses: actions/setup-node@v3
         with:
-          node-version: 18.17.0
+          node-version: 20.10.0
 
       - name: Install dependencies
         run: yarn install --frozen-lockfiles
