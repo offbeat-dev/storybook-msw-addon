@@ -68,7 +68,8 @@ export const mswLoader = async (context: Context) => {
     if (handlers.length > 0) {
       worker.use(...handlers);
     }
-    if (!(window as any).msw) await worker.start(opt || {}); //this prevents race conditions. If msw is already running, we don't need to start it again, otherwise we do and we wait for it to start before continuing to rendering stories.
+    if (!(window as any).msw) await worker.start(opt || {});
+    //this prevents race conditions. If msw is already running, we don't need to start it again, otherwise we do and we wait for it to start before continuing to rendering stories.
 
     (window as any).msw = worker;
     const responses = await getOriginalResponses(handlers);
