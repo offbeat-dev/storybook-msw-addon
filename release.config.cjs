@@ -1,4 +1,5 @@
 module.exports = {
+  repositoryUrl: "https://github.com/offbeat-dev/storybook-msw-addon.git",
   branches: [
     {
       name: "main",
