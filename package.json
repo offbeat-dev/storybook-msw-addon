@@ -1,6 +1,6 @@
 {
   "name": "storybook-msw-addon",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "An MSW (Mock Service Worker) addon including a control panel that enables interaction and manipulation of mock requests within Storybook.",
   "keywords": [
     "storybook-addons",

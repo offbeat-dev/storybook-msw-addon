@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.2.0...v1.2.1) (2024-01-17)
+
+
+### Bug Fixes
+
+* generate dist folder before publishing ([26227d7](https://github.com/offbeat-dev/storybook-msw-addon/commit/26227d752497962c3ec58abd9c3185f91e321879))
+
 # [1.2.0](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.1.0...v1.2.0) (2024-01-16)
 
 
