@@ -10,7 +10,8 @@ import {
   STORY_ARGS_UPDATED,
 } from "@storybook/core-events";
 import { EVENTS, PARAM_KEY } from "./constants";
-import { RequestHandler, http, delay, HttpResponse } from "msw";
+import { RequestHandler, http, delay, HttpResponse, HttpHandler } from "msw";
+import { handlerResponseKey } from "./helpers";
 
 type Context = {
   [x: string]: any;
@@ -41,16 +42,34 @@ const getParameter = (
 const updateHandlers = (handlers: RequestHandler[]) => {
   if (!handlers || !responses) return;
   const worker = (window as any).msw;
-  handlers?.forEach((handler: any) => {
-    const currentResponse = responses[handler.info.path];
+  handlers?.forEach((handler: HttpHandler) => {
+    const currentResponse = responses[handlerResponseKey(handler)];
     status = currentResponse.status;
+    const method = handler.info.method as 'GET' | 'HEAD' | 'POST' | 'PUT' | 'HEAD' | 'PATCH' | 'OPTIONS' | 'DELETE' | RegExp;
+
+    if (typeof method !== "string") {
+      console.warn(
+        `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string method, RegExp is currently not supported. Offending path: ${handler.info.path}`
+      );
+
+      return;
+    }
+
+    const methodFunction = {
+      GET: http.get,
+      POST: http.post,
+      PUT: http.put,
+      DELETE: http.delete,
+      PATCH: http.patch,
+      HEAD: http.head,
+      OPTIONS: http.options,
+    }[method];
+
     worker.use(
-      http.get(handler.info.path, async() => {
+      methodFunction(handler.info.path, async() => {
 
         await delay(responseDelay);
         return  HttpResponse.json(currentResponse.data, {status: currentResponse.status});
-
-       
       })
     );
   });

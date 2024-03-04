@@ -1,11 +1,13 @@
+import {HttpHandler, HttpMethods} from "msw";
 import { SetupWorker, setupWorker } from "msw/browser";
+import {handlerResponseKey} from "./helpers";
 
 export type SetupApi = SetupWorker;
 export type InitializeOptions = Parameters<SetupWorker["start"]>[0];
 
 export type MswParameters = {
   msw?: {
-    handlers: any[];
+    handlers: HttpHandler[],
     originalResponses: Record<string, any>;
   };
 };
@@ -57,7 +59,7 @@ export const mswLoader = async (context: Context) => {
       .reduce(
         (handlers, handlersList) => handlers.concat(handlersList),
         [] as unknown[],
-      );
+      ) as HttpHandler[];
     if (viewMode === "docs") {
       const { handlers: modifiedHandlers, context: modifiedContext } =
         modifyHandlersAndArgs(handlers, context);
@@ -111,15 +113,38 @@ const modifyHandlersAndArgs = (handlers: any, context: Context) => {
   return { handlers: handlers, context: context };
 };
 
-const getOriginalResponses = async (handlers: any[]) => {
+const getOriginalResponses = async (handlers: HttpHandler[]) => {
   const originalResponses = {} as Record<string, any>;
   for (const handler of handlers) {
-    const originalRequest = new Request(handler.info.path);
+    const path = handler.info.path;
+    const method = handler.info.method || HttpMethods.GET;
+
+    if (typeof path !== 'string') {
+      console.warn(
+        `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string path, RegExp is currently not supported. Offending path: ${path}`
+      );
+      continue;
+    }
+
+    if (typeof method !== 'string') {
+      console.warn(
+        `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string method, RegExp is currently not supported. Offending path: ${path}`
+      );
+      continue;
+    }
+
+    const originalRequest = new Request(
+      path,
+      {
+        method,
+      },
+    );
+
     const originalResponse = await fetch(originalRequest);
     let originalData;
     if (!originalResponse.ok) originalData = null;
     else originalData = await originalResponse.json();
-    originalResponses[handler.info.path] = {
+    originalResponses[handlerResponseKey(handler)] = {
       data: originalData,
       status: originalResponse.status,
     };
