@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.2.1...v1.3.0) (2024-03-04)
+
+
+### Features
+
+* support non-get requests ([0e2bd65](https://github.com/offbeat-dev/storybook-msw-addon/commit/0e2bd656a5b0ed3c2b6ccd027aeb1e28c02827a6))
+
 ## [1.2.1](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.2.0...v1.2.1) (2024-01-17)
 
 

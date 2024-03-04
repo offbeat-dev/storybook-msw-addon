@@ -1,10 +1,11 @@
+import { HttpHandler } from 'msw';
 import { SetupWorker } from 'msw/browser';
 
 type SetupApi = SetupWorker;
 type InitializeOptions = Parameters<SetupWorker["start"]>[0];
 type MswParameters = {
     msw?: {
-        handlers: any[];
+        handlers: HttpHandler[];
         originalResponses: Record<string, any>;
     };
 };
