@@ -6,6 +6,7 @@ import { RangeControl } from "@storybook/blocks";
 import { ObjectControl } from "@storybook/blocks";
 import { styled } from "@storybook/theming";
 import statusTextMap from "./utils/statusMap";
+import { handlerResponseKeyParts } from "./helpers";
 
 const statusCodes = Object.keys(statusTextMap);
 
@@ -144,18 +145,21 @@ export const Panel: React.FC<PanelProps> = (props) => {
               <ObjectsContainer>
                 {addonState.responses &&
                   Object.keys(addonState.responses).length > 0 &&
-                  Object.keys(addonState.responses).map((key) => (
-                    <ObjectControlContainer key={key}>
-                      <ObjectControl
-                        name={key}
-                        value={addonState.responses[key].data}
-                        onChange={(value) =>
-                          onChangeResponse("responses", key, value)
-                        }
-                        theme={undefined}
-                      />
-                    </ObjectControlContainer>
-                  ))}
+                  Object.keys(addonState.responses).map((key) => {
+                    const { method, path } = handlerResponseKeyParts(key);
+                    return (
+                      <ObjectControlContainer key={key}>
+                        <ObjectControl
+                          name={`${method} ${path}`}
+                          value={addonState.responses[key].data}
+                          onChange={(value) =>
+                            onChangeResponse("responses", key, value)
+                          }
+                          theme={undefined}
+                        />
+                      </ObjectControlContainer>
+                    );
+                  })}
               </ObjectsContainer>
             </div>
             <div>
