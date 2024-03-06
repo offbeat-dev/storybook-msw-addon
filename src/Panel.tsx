@@ -91,7 +91,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
   const onChangeResponse = (
     key: string,
     objectKey: string,
-    objectValue: number | string
+    objectValue: number | string,
   ) => {
     setDataHasChanged(true);
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
@@ -147,11 +147,13 @@ export const Panel: React.FC<PanelProps> = (props) => {
                   Object.keys(addonState.responses).length > 0 &&
                   Object.keys(addonState.responses).map((key) => {
                     const { method, path } = handlerResponseKeyParts(key);
-                    return (
+ c                    return (
                       <ObjectControlContainer key={key}>
                         <ObjectControl
                           name={`${method} ${path}`}
-                          value={addonState.responses[key].data}
+                          value={
+                            addonState.responses[key].response.jsonBodyData
+                          }
                           onChange={(value) =>
                             onChangeResponse("responses", key, value)
                           }

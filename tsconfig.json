@@ -17,5 +17,5 @@
     "target": "ES2020",
     "types": ["node", "vite/client"]
   },
-  "include": ["src/**/*", "api/mockServiceWorker.js"]
+  "include": ["src/**/*", "api/mockServiceWorker.js", "./typings.d.ts"]
 }

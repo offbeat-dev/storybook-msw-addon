@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { HttpResponse, http} from "msw";
+import { HttpResponse, http } from "msw";
 import { MockApi } from "./MockApi";
 
 const endpoint = "https://swapi.dev/api/films/";
@@ -69,7 +69,7 @@ export const MockedError: Story = {
     msw: {
       handlers: [
         http.get(endpoint, () => {
-          return new HttpResponse(null, {status: 404})
+          return new HttpResponse(null, { status: 404 });
         }),
       ],
     },
