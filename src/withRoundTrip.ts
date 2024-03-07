@@ -18,7 +18,6 @@ import {
   HttpResponse,
   HttpHandler,
   GraphQLHandler,
-
 } from "msw";
 import { getResponse } from "./utils/getResponse";
 
@@ -35,40 +34,34 @@ let status = 200;
 let moveTimeout: NodeJS.Timeout;
 let emit: (eventName: string, ...args: any) => void;
 
-const updateHandlers = () => {
+const updateHandlers = async () => {
   if (!Object.keys(window.__MSW_STORYBOOK__.handlersMap).length) return;
   if (!window.__MSW_STORYBOOK__) return;
+
   const worker = window.__MSW_STORYBOOK__.worker;
   worker.resetHandlers();
-  console.log('HANDLERS', worker.listHandlers());
+
   window.__MSW_STORYBOOK__.handlers?.forEach((handler) => {
     if (!window.__MSW_STORYBOOK__.handlersMap[handler.info.header]) return;
     const currentResponse =
       window.__MSW_STORYBOOK__.handlersMap[handler.info.header].response;
-    const currentHandler =
-      window.__MSW_STORYBOOK__.handlersMap[handler.info.header].handler;
 
     console.log("currentResponse", currentResponse);
-    console.log("currentHandler", currentHandler);
+
     if ((handler as HttpHandler).info.path) {
       const httpHandler = handler as HttpHandler;
       worker.use(
         http.get(httpHandler.info.path, async () => {
           await delay(responseDelay);
-          if (currentResponse.status !== 200)
-            return new HttpResponse(null, { status: status });
-          return HttpResponse.json(currentResponse.jsonBodyData);
+          if (status !== 200) return new HttpResponse(null, { status: status });
+          else return HttpResponse.json(currentResponse.jsonBodyData);
         }),
       );
-    }
-
-    else if ((handler as GraphQLHandler).info.operationName) {
-      console.log(currentResponse);
+    } else if ((handler as GraphQLHandler).info.operationName) {
       const graphQLHandler = handler as GraphQLHandler;
       worker.use(
-        graphql.query(graphQLHandler.info.operationName, ({ query, variables }) => {
-          console
-          return HttpResponse.json({...currentResponse.jsonBodyData});
+        graphql.query(graphQLHandler.info.operationName, () => {
+          return HttpResponse.json({ ...currentResponse.jsonBodyData });
         }),
       );
     }
@@ -87,16 +80,15 @@ export const withRoundTrip = (
   }
 
   if (ctx.parameters.msw.handlers) {
-    // Get handlers from story parameters
     if (!window.__MSW_STORYBOOK__.handlers)
       window.__MSW_STORYBOOK__.handlers = ctx.parameters.msw
         .handlers as RequestHandler[];
-    // Initialize handlersMap to store responses
     if (!window.__MSW_STORYBOOK__.handlersMap)
       window.__MSW_STORYBOOK__.handlersMap = {};
-    // Define events to listen to from the addon panel
+
     emit = useChannel({
       [EVENTS.UPDATE]: ({ key, value }) => {
+        console.log("update", key, value);
         if (key === "delay") {
           clearTimeout(moveTimeout);
           responseDelay = value;
@@ -110,25 +102,21 @@ export const withRoundTrip = (
           updateHandlers();
           channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
         }
+
         const responseObject = {
           delay: responseDelay,
           status: status,
           responses: window.__MSW_STORYBOOK__.handlersMap,
         };
-        console.log(responseObject);
         emit(EVENTS.SEND, responseObject);
       },
       [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
         if (key === "responses") {
-          console.log('UPDATE_RESPONSES',  window.__MSW_STORYBOOK__.handlersMap[objectKey]);
-
-          window.__MSW_STORYBOOK__.handlersMap[objectKey].response={
+          window.__MSW_STORYBOOK__.handlersMap[objectKey].response = {
             ...window.__MSW_STORYBOOK__.handlersMap[objectKey].response,
-            jsonBodyData : objectValue
-          }
-
+            jsonBodyData: objectValue,
+          };
           updateHandlers();
-          console.log(objectValue, window.__MSW_STORYBOOK__.handlersMap);
           const responseObject = {
             delay: responseDelay,
             status: status,
@@ -175,7 +163,6 @@ export const withRoundTrip = (
 
 // Listen to request:match events from msw in order to build the handlersMap
 const logEvents = () => {
-  console.log("logEvents");
   const worker = window.__MSW_STORYBOOK__.worker;
   if (!Array.isArray(window.__MSW_STORYBOOK__.handlers)) {
     const joinedHandlers: any = [];
@@ -187,8 +174,7 @@ const logEvents = () => {
   }
 
   worker.events.on("request:match", async ({ request, requestId }) => {
-    if(SET_INITIAL_RESPONSES) return;
-    console.log("request:match", request, requestId);
+    if (SET_INITIAL_RESPONSES) return;
     let { handler, response } = await getResponse(
       window.__MSW_STORYBOOK__.handlers || [],
       request,
@@ -199,7 +185,6 @@ const logEvents = () => {
       delay: number;
     };
     let responseData = await response.json();
-    console.log("handler : response", handler, responseData);
     if (response && handler) {
       if (
         window.__MSW_STORYBOOK__.handlersMap[handler.info.header] &&

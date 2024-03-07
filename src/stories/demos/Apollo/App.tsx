@@ -1,44 +1,37 @@
 import React, { Fragment } from "react";
-import "./mock-api.scss";
+import "../../mock-api.scss";
+import {
+  useQuery,
+  gql,
+  DocumentNode,
+  TypedDocumentNode,
+  OperationVariables,
+} from "@apollo/client";
 
-type MockApiProps = {
-  endpoint?: string;
+function useFetchFilms(
+  query: DocumentNode | TypedDocumentNode<any, OperationVariables>,
+) {
+  const { loading, error, data } = useQuery(query);
+
+  const results = data ? data.allFilms.films : [];
+
+  return { loading, error, results };
+}
+
+type MockApiGraphQLProps = {
   heading: string;
+  query: DocumentNode | TypedDocumentNode<any, OperationVariables>;
 };
 
-type MockApiResult = {
+type MockApiGraphQLResult = {
   episode_id: number;
   title: string;
   opening_crawl: string;
   producer: string;
 };
 
-export const MockApi = ({ heading, endpoint }: MockApiProps) => {
-  const [results, setResults] = React.useState<MockApiResult[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const fetchResults = React.useCallback(async () => {
-    if (!endpoint) return;
-    setLoading(true);
-    const response = await fetch(`${endpoint}`);
-
-    if (response.status === 200) {
-      const data = await response.json();
-      setResults(data.results);
-      setLoading(false);
-    } else {
-      setError(
-        `Something went wrong with the request. Status: ${response.status}`,
-      );
-      setLoading(false);
-    }
-  }, [endpoint]);
-
-  React.useEffect(() => {
-    console.log("fetching");
-    fetchResults();
-  }, []);
+export const MockApiGraphQL = ({ heading, query }: MockApiGraphQLProps) => {
+  const { loading, error, results } = useFetchFilms(query);
 
   if (loading) {
     return (
@@ -51,13 +44,13 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
   return (
     <div className="storybook-mock-api">
       <h2>{heading}</h2>
-      {error && <p>{error}</p>}
+      {error && <p>{error.message}</p>}
       {(!results || (results?.length === 0 && !error)) && (
         <p>No results found</p>
       )}
       {results && results.length > 0 && (
         <ul className="storybook-mock-api__items ">
-          {results.map((result) => (
+          {results.map((result: MockApiGraphQLResult) => (
             <li key={result.episode_id} className="storybook-mock-api__item">
               <h3 className="storybook-mock-api__item-title">{result.title}</h3>
               <p className="storybook-mock-api__item-description">
