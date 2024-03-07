@@ -3,20 +3,20 @@ import type {
   HttpResponse,
   HttpRequestHandler,
   GraphQLRequestHandler,
+  JsonBodyType,
 } from "msw";
 import { SetupWorker } from "msw/browser";
 
 declare global {
   interface Window {
     __MSW_STORYBOOK__: {
-      worker: SetupWorker;
-      handlers: RequestHandler[];
-
-      handlersMap: {
+      worker?: SetupWorker;
+      handlers?: RequestHandler[];
+      handlersMap?: {
         [key: string]: {
           handler: RequestHandler;
           response: HttpResponse & {
-            jsonBodyData?: JSON;
+            jsonBodyData?: object;
             status?: number;
             delay?: number;
           };

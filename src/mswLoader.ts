@@ -22,13 +22,10 @@ export const initialize = async (options?: StartOptions) => {
 
 const setupHandlers = (msw: MswParameters["msw"]) => {
   if (worker) {
-    console.log("worker", worker);
     if (window.__MSW_STORYBOOK__) return;
-    console.log("resetting handlers");
     worker.resetHandlers();
     if (msw) {
       if (Array.isArray(msw) && msw.length > 0) {
-        console.log("handlers", msw);
         worker.use(...msw);
       } else if ("handlers" in msw && msw.handlers) {
         const handlers = Object.values(msw.handlers)
@@ -37,8 +34,6 @@ const setupHandlers = (msw: MswParameters["msw"]) => {
             (handlers, handlersList) => handlers.concat(handlersList),
             [] as RequestHandler[],
           );
-
-        console.log("handlers", handlers);
 
         if (handlers.length > 0) {
           console.log("handlers", handlers);
@@ -55,8 +50,9 @@ export const mswLoader = async (context: Context) => {
     viewMode,
   } = context;
 
-  if (!msw || (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker))
+  if (!msw || (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker)){
     return;
+  }
 
   if (viewMode === "docs" && window.__MSW_STORYBOOK__.worker) {
     worker =
@@ -64,16 +60,13 @@ export const mswLoader = async (context: Context) => {
   } else {
     worker = typeof global.process === "undefined" && setupWorker();
   }
-  console.log("worker", worker);
   await worker.start(opt);
   setupHandlers(msw);
 
   if (worker) {
-    // @ts-expect-error the types are getting confused, we will eventually remove setupServerApi
     window.__MSW_STORYBOOK__ = window.__MSW_STORYBOOK__ || {};
     window.__MSW_STORYBOOK__.worker = worker;
   }
-
   return {};
 };
 

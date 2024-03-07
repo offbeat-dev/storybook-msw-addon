@@ -1,6 +1,6 @@
 import { addons, useChannel } from '@storybook/preview-api';
 import { FORCE_REMOUNT, STORY_ARGS_UPDATED, STORY_CHANGED } from '@storybook/core-events';
-import { HttpResponse, http, delay } from 'msw';
+import { http, delay, HttpResponse, graphql } from 'msw';
 
 // src/withRoundTrip.ts
 
@@ -62,6 +62,7 @@ var getResponse = async (handlers, request) => {
 // src/withRoundTrip.ts
 var channel = addons.getChannel();
 var INITIAL_MOUNT_STATE = true;
+var SET_INITIAL_RESPONSES = false;
 var responseDelay = 0;
 var status = 200;
 var moveTimeout;
@@ -73,6 +74,7 @@ var updateHandlers = () => {
     return;
   const worker = window.__MSW_STORYBOOK__.worker;
   worker.resetHandlers();
+  console.log("HANDLERS", worker.listHandlers());
   window.__MSW_STORYBOOK__.handlers?.forEach((handler) => {
     if (!window.__MSW_STORYBOOK__.handlersMap[handler.info.header])
       return;
@@ -84,11 +86,18 @@ var updateHandlers = () => {
       const httpHandler = handler;
       worker.use(
         http.get(httpHandler.info.path, async () => {
-          console.log("new httphandler", httpHandler.info.path);
           await delay(responseDelay);
           if (currentResponse.status !== 200)
             return new HttpResponse(null, { status });
           return HttpResponse.json(currentResponse.jsonBodyData);
+        })
+      );
+    } else if (handler.info.operationName) {
+      console.log(currentResponse);
+      const graphQLHandler = handler;
+      worker.use(
+        graphql.query(graphQLHandler.info.operationName, ({ query, variables }) => {
+          return HttpResponse.json({ ...currentResponse.jsonBodyData });
         })
       );
     }
@@ -126,19 +135,25 @@ var withRoundTrip = (storyFn, ctx) => {
           status,
           responses: window.__MSW_STORYBOOK__.handlersMap
         };
+        console.log(responseObject);
         emit(EVENTS.SEND, responseObject);
       },
       [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
         if (key === "responses") {
-          window.__MSW_STORYBOOK__.handlersMap[objectKey].response = HttpResponse.text(JSON.stringify(objectValue));
+          console.log("UPDATE_RESPONSES", window.__MSW_STORYBOOK__.handlersMap[objectKey]);
+          window.__MSW_STORYBOOK__.handlersMap[objectKey].response = {
+            ...window.__MSW_STORYBOOK__.handlersMap[objectKey].response,
+            jsonBodyData: objectValue
+          };
           updateHandlers();
+          console.log(objectValue, window.__MSW_STORYBOOK__.handlersMap);
           const responseObject = {
             delay: responseDelay,
             status,
             responses: window.__MSW_STORYBOOK__.handlersMap
           };
-          channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
           emit(EVENTS.SEND, responseObject);
+          channel.emit(FORCE_REMOUNT, { storyId: ctx.id });
         }
       },
       [EVENTS.RESET]: () => {
@@ -148,7 +163,6 @@ var withRoundTrip = (storyFn, ctx) => {
       }
     });
     if (INITIAL_MOUNT_STATE) {
-      console.log("INITIAL_MOUNT_STATE", window.__MSW_STORYBOOK__);
       logEvents();
       emit(EVENTS.SEND, {
         delay: responseDelay,
@@ -175,6 +189,7 @@ var withRoundTrip = (storyFn, ctx) => {
   return storyFn();
 };
 var logEvents = () => {
+  console.log("logEvents");
   const worker = window.__MSW_STORYBOOK__.worker;
   if (!Array.isArray(window.__MSW_STORYBOOK__.handlers)) {
     const joinedHandlers = [];
@@ -187,6 +202,9 @@ var logEvents = () => {
     window.__MSW_STORYBOOK__.handlers = joinedHandlers;
   }
   worker.events.on("request:match", async ({ request, requestId }) => {
+    if (SET_INITIAL_RESPONSES)
+      return;
+    console.log("request:match", request, requestId);
     let { handler, response } = await getResponse(
       window.__MSW_STORYBOOK__.handlers || [],
       request
@@ -210,6 +228,7 @@ var logEvents = () => {
         status,
         responses: window.__MSW_STORYBOOK__.handlersMap
       });
+      SET_INITIAL_RESPONSES = true;
     }
   });
 };

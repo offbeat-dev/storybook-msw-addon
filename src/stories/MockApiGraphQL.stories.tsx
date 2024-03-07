@@ -42,7 +42,6 @@ export const DefaultBehavior = () => (
 const meta: Meta<typeof MockApiGraphQL> = {
   title: "Example/Mock API GraphQL",
   component: MockApiGraphQL,
-  tags: ["autodocs"],
 };
 
 export default meta;

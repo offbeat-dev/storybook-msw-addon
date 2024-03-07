@@ -8,21 +8,17 @@ var initialize = async (options) => {
 };
 var setupHandlers = (msw) => {
   if (worker) {
-    console.log("worker", worker);
     if (window.__MSW_STORYBOOK__)
       return;
-    console.log("resetting handlers");
     worker.resetHandlers();
     if (msw) {
       if (Array.isArray(msw) && msw.length > 0) {
-        console.log("handlers", msw);
         worker.use(...msw);
       } else if ("handlers" in msw && msw.handlers) {
         const handlers = Object.values(msw.handlers).filter(Boolean).reduce(
           (handlers2, handlersList) => handlers2.concat(handlersList),
           []
         );
-        console.log("handlers", handlers);
         if (handlers.length > 0) {
           console.log("handlers", handlers);
           worker.use(...handlers);
@@ -36,14 +32,14 @@ var mswLoader = async (context) => {
     parameters: { msw },
     viewMode
   } = context;
-  if (!msw || window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker)
+  if (!msw || window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker) {
     return;
+  }
   if (viewMode === "docs" && window.__MSW_STORYBOOK__.worker) {
     worker = typeof global.process === "undefined" && window.__MSW_STORYBOOK__.worker;
   } else {
     worker = typeof global.process === "undefined" && setupWorker();
   }
-  console.log("worker", worker);
   await worker.start(opt);
   setupHandlers(msw);
   if (worker) {

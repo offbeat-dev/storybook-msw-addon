@@ -30,7 +30,6 @@ const results = [
 const meta: Meta<typeof MockApi> = {
   title: "Example/Mock API",
   component: MockApi,
-  tags: ["autodocs"],
 };
 
 export default meta;

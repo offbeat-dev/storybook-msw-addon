@@ -26,13 +26,6 @@ var statusTextMap = {
 };
 var statusMap_default = statusTextMap;
 
-// src/helpers.ts
-var SEPARATOR = "__HandlerResponseKeySeparator__";
-var handlerResponseKeyParts = (key) => {
-  const [method, path] = key.split(SEPARATOR);
-  return { method, path };
-};
-
 // src/Panel.tsx
 var statusCodes = Object.keys(statusMap_default);
 var { Select } = Form;
@@ -87,18 +80,22 @@ var Panel = (props) => {
   const [dataHasChanged, setDataHasChanged] = React.useState(false);
   const emit = useChannel({
     [EVENTS.SEND]: (newAddonState) => {
+      console.log("send", newAddonState);
       setAddonState({ ...addonState, ...newAddonState });
     }
   });
   const onReset = () => {
+    console.log("onReset");
     emit(EVENTS.RESET);
     setDataHasChanged(false);
   };
   const onChange = (key, value) => {
+    console.log("onChange", key, value);
     emit(EVENTS.UPDATE, { key, value });
   };
   const onChangeResponse = (key, objectKey, objectValue) => {
     setDataHasChanged(true);
+    console.log("onChangeResponse", key, objectKey, objectValue);
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
   };
   const getRender = () => {
@@ -122,12 +119,12 @@ var Panel = (props) => {
         },
         statusCodes.map((code) => /* @__PURE__ */ React.createElement("option", { key: code, value: code }, code, " - ", statusMap_default[code]))
       )), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Label, null, /* @__PURE__ */ React.createElement("h3", null, "Response Data"), /* @__PURE__ */ React.createElement("p", null, "Edit the mock response data")), /* @__PURE__ */ React.createElement(ObjectsContainer, null, addonState.responses && Object.keys(addonState.responses).length > 0 && Object.keys(addonState.responses).map((key) => {
-        const { method, path } = handlerResponseKeyParts(key);
-        console.log("key", key);
+        const { method, path } = addonState.responses[key].handler.info;
+        const { operationName } = addonState.responses[key].handler.info;
         return /* @__PURE__ */ React.createElement(ObjectControlContainer, { key }, /* @__PURE__ */ React.createElement(
           ObjectControl,
           {
-            name: `${method} ${path}`,
+            name: method && path ? `${method} ${path}` : operationName,
             value: addonState.responses[key].response.jsonBodyData,
             onChange: (value) => onChangeResponse("responses", key, value),
             theme: void 0

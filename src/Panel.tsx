@@ -6,7 +6,6 @@ import { RangeControl } from "@storybook/blocks";
 import { ObjectControl } from "@storybook/blocks";
 import { styled } from "@storybook/theming";
 import statusTextMap from "./utils/statusMap";
-import { handlerResponseKeyParts } from "./helpers";
 
 const statusCodes = Object.keys(statusTextMap);
 
@@ -70,21 +69,23 @@ const SBButton = styled(Button)`
 
 export const Panel: React.FC<PanelProps> = (props) => {
   const [addonState, setAddonState] = useAddonState(ADDON_ID, {} as any);
-
   const [dataHasChanged, setDataHasChanged] = React.useState(false);
 
   const emit = useChannel({
     [EVENTS.SEND]: (newAddonState) => {
+      console.log("send", newAddonState);
       setAddonState({ ...addonState, ...newAddonState });
     },
   });
 
   const onReset = () => {
+    console.log("onReset");
     emit(EVENTS.RESET);
     setDataHasChanged(false);
   };
 
   const onChange = (key: string, value: number | string) => {
+    console.log("onChange", key, value);
     emit(EVENTS.UPDATE, { key, value });
   };
 
@@ -94,6 +95,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
     objectValue: number | string,
   ) => {
     setDataHasChanged(true);
+    console.log("onChangeResponse", key, objectKey, objectValue);
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
   };
 
@@ -146,11 +148,12 @@ export const Panel: React.FC<PanelProps> = (props) => {
                 {addonState.responses &&
                   Object.keys(addonState.responses).length > 0 &&
                   Object.keys(addonState.responses).map((key) => {
-                    const { method, path } = handlerResponseKeyParts(key);
- c                    return (
+                    const { method, path } = addonState.responses[key].handler.info;
+                    const { operationName } = addonState.responses[key].handler.info;
+                return (
                       <ObjectControlContainer key={key}>
                         <ObjectControl
-                          name={`${method} ${path}`}
+                          name={method && path ? `${method} ${path}` : operationName}
                           value={
                             addonState.responses[key].response.jsonBodyData
                           }
