@@ -3,7 +3,7 @@ import "../../mock-api.scss";
 import { useQuery } from "react-query";
 
 function fetchFilms(endpoint: string) {
-  return fetch(null)
+  return fetch(endpoint)
     .then((res) => {
       if (!res.ok) {
         throw new Error(res.statusText);
@@ -39,7 +39,6 @@ type MockApiResult = {
 
 export const MockApi = ({ endpoint, heading }: MockApiProps) => {
   const { status, error, results } = useFetchFilms(endpoint);
-  console.log(status, error);
 
   if (status === "loading") {
     return (
