@@ -148,12 +148,16 @@ export const Panel: React.FC<PanelProps> = (props) => {
                 {addonState.responses &&
                   Object.keys(addonState.responses).length > 0 &&
                   Object.keys(addonState.responses).map((key) => {
-                    const { method, path } = addonState.responses[key].handler.info;
-                    const { operationName } = addonState.responses[key].handler.info;
-                return (
+                    const { method, path } =
+                      addonState.responses[key].handler.info;
+                    const { operationName } =
+                      addonState.responses[key].handler.info;
+                    return (
                       <ObjectControlContainer key={key}>
                         <ObjectControl
-                          name={method && path ? `${method} ${path}` : operationName}
+                          name={
+                            method && path ? `${method} ${path}` : operationName
+                          }
                           value={
                             addonState.responses[key].response.jsonBodyData
                           }
