@@ -29,7 +29,7 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
       setLoading(false);
     } else {
       setError(
-        `Something went wrong with the request. Status: ${response.status}`
+        `Something went wrong with the request. Status: ${response.status}`,
       );
       setLoading(false);
     }

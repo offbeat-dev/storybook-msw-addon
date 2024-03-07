@@ -3,11 +3,24 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { HttpResponse, graphql } from "msw";
 import { MockApiGraphQL } from "./MockApiGraphQL";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { gql } from "@apollo/client";
 
 const defaultClient = new ApolloClient({
   uri: "https://swapi-graphql.netlify.app/.netlify/functions/index",
   cache: new InMemoryCache(),
 });
+
+const AllFilmsQuery = gql`
+  query AllFilmsQuery {
+    allFilms {
+      films {
+        title
+        episode_id: episodeID
+        opening_crawl: openingCrawl
+      }
+    }
+  }
+`;
 
 const results = [
   {
@@ -35,7 +48,7 @@ const results = [
 
 export const DefaultBehavior = () => (
   <ApolloProvider client={defaultClient}>
-    <MockApiGraphQL heading={"Mock Films API"} />
+    <MockApiGraphQL heading={"Mock Films API"} query={AllFilmsQuery} />
   </ApolloProvider>
 );
 
@@ -65,7 +78,7 @@ const mockedClient = new ApolloClient({
 
 const MockTemplate = () => (
   <ApolloProvider client={mockedClient}>
-    <MockApiGraphQL heading={"Mocked Films API"} />
+    <MockApiGraphQL heading={"Mocked Films API"} query={AllFilmsQuery} />
   </ApolloProvider>
 );
 

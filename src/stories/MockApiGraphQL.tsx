@@ -1,21 +1,17 @@
 import React, { Fragment } from "react";
 import "./mock-api.scss";
-import { useQuery, gql } from "@apollo/client";
+import {
+  useQuery,
+  gql,
+  DocumentNode,
+  TypedDocumentNode,
+  OperationVariables,
+} from "@apollo/client";
 
-const AllFilmsQuery = gql`
-  query AllFilmsQuery {
-    allFilms {
-      films {
-        title
-        episode_id: episodeID
-        opening_crawl: openingCrawl
-      }
-    }
-  }
-`;
-
-function useFetchFilms() {
-  const { loading, error, data } = useQuery(AllFilmsQuery);
+function useFetchFilms(
+  query: DocumentNode | TypedDocumentNode<any, OperationVariables>,
+) {
+  const { loading, error, data } = useQuery(query);
 
   const results = data ? data.allFilms.films : [];
 
@@ -24,6 +20,7 @@ function useFetchFilms() {
 
 type MockApiGraphQLProps = {
   heading: string;
+  query: DocumentNode | TypedDocumentNode<any, OperationVariables>;
 };
 
 type MockApiGraphQLResult = {
@@ -33,8 +30,8 @@ type MockApiGraphQLResult = {
   producer: string;
 };
 
-export const MockApiGraphQL = ({ heading }: MockApiGraphQLProps) => {
-  const { loading, error, results } = useFetchFilms();
+export const MockApiGraphQL = ({ heading, query }: MockApiGraphQLProps) => {
+  const { loading, error, results } = useFetchFilms(query);
 
   if (loading) {
     return (
