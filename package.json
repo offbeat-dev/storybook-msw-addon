@@ -54,13 +54,13 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "commit": "npm run git-cz",
-    "prebuild": "yarn clean",
+    "prebuild": "pnpm run clean",
     "build": "tsup",
-    "build:watch": "yarn build --watch",
+    "build:watch": "pnpm run build --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"yarn build:watch\" \"yarn storybook --quiet\"",
+    "start": "concurrently \"pnpm run build:watch\" \"pnpm run storybook --quiet\"",
     "prerelease": "zx scripts/prepublish-checks.mjs",
-    "release": "yarn build && auto shipit",
+    "release": "pnpm run build && auto shipit",
     "eject-ts": "zx scripts/eject-typescript.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
@@ -156,5 +156,6 @@
   },
   "resolutions": {
     "jackspeak": "2.1.1"
-  }
+  },
+  "packageManager": "pnpm@8.15.4+sha256.cea6d0bdf2de3a0549582da3983c70c92ffc577ff4410cbf190817ddc35137c2"
 }
