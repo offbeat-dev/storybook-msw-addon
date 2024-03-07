@@ -73,19 +73,16 @@ export const Panel: React.FC<PanelProps> = (props) => {
 
   const emit = useChannel({
     [EVENTS.SEND]: (newAddonState) => {
-      console.log("send", newAddonState);
       setAddonState({ ...addonState, ...newAddonState });
     },
   });
 
   const onReset = () => {
-    console.log("onReset");
     emit(EVENTS.RESET);
     setDataHasChanged(false);
   };
 
   const onChange = (key: string, value: number | string) => {
-    console.log("onChange", key, value);
     emit(EVENTS.UPDATE, { key, value });
   };
 
@@ -95,7 +92,6 @@ export const Panel: React.FC<PanelProps> = (props) => {
     objectValue: number | string,
   ) => {
     setDataHasChanged(true);
-    console.log("onChangeResponse", key, objectKey, objectValue);
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
   };
 
