@@ -54,8 +54,7 @@ const updateHandlers = () => {
       worker.use(
         http.get(httpHandler.info.path, async () => {
           await delay(responseDelay);
-          if (currentResponse.status !== 200)
-            return new HttpResponse(null, { status: status });
+          if (status !== 200) return new HttpResponse(null, { status: status });
           return HttpResponse.json(currentResponse.jsonBodyData);
         }),
       );
