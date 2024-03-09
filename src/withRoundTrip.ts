@@ -1,4 +1,5 @@
 import { addons, useChannel } from "@storybook/preview-api";
+import { getMethodFunction } from "./utils/getMethodFunction";
 import type {
   Renderer,
   PartialStoryFn as StoryFunction,
@@ -47,15 +48,15 @@ const updateHandlers = () => {
     const currentHandler =
       window.__MSW_STORYBOOK__.handlersMap[handler.info.header].handler;
 
-    console.log("currentResponse", currentResponse);
-    console.log("currentHandler", currentHandler);
     if ((handler as HttpHandler).info.path) {
       const httpHandler = handler as HttpHandler;
+      const methodFunction = getMethodFunction(httpHandler.info.method);
       worker.use(
-        http.get(httpHandler.info.path, async () => {
+        methodFunction(httpHandler.info.path, async () => {
           await delay(responseDelay);
-          if (status !== 200) return new HttpResponse(null, { status: status });
-          return HttpResponse.json(currentResponse.jsonBodyData);
+          return HttpResponse.json(currentResponse.jsonBodyData, {
+            status: status,
+          });
         }),
       );
     } else if ((handler as GraphQLHandler).info.operationName) {
