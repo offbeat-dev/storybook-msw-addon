@@ -24,7 +24,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Create Semantic Release
         env:
