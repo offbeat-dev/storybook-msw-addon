@@ -13,6 +13,7 @@ jobs:
         run: git fetch --unshallow --tags
 
       - name: Use Node.js 20.10.0
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
