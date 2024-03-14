@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.0...v2.0.1) (2024-03-14)
+
+
+### Bug Fixes
+
+* check peerDependencies and back to storybook 8.0.0 ([0291487](https://github.com/offbeat-dev/storybook-msw-addon/commit/0291487d87de22d724f8e32ad0ab028690e0b826))
+
 # [2.0.0](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.3.0...v2.0.0) (2024-03-14)
 
 
