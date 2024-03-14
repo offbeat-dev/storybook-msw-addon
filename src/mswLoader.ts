@@ -1,13 +1,9 @@
-import {HttpHandler, HttpMethods} from "msw";
-import { SetupWorker, setupWorker } from "msw/browser";
-import {handlerResponseKey} from "./helpers";
-
-export type SetupApi = SetupWorker;
-export type InitializeOptions = Parameters<SetupWorker["start"]>[0];
+import { RequestHandler } from "msw";
+import { SetupWorker, StartOptions, setupWorker } from "msw/browser";
 
 export type MswParameters = {
   msw?: {
-    handlers: HttpHandler[],
+    handlers: RequestHandler[];
     originalResponses: Record<string, any>;
   };
 };
@@ -15,140 +11,147 @@ export type MswParameters = {
 type Context = {
   parameters: MswParameters;
   viewMode: string;
-  args: Record<string, any>;
-  allArgs: Record<string, any>;
-  initialArgs: Record<string, any>;
 };
 
 let worker: SetupWorker;
-let opt: InitializeOptions;
+let opt: StartOptions;
 
-export const initialize = async (options?: InitializeOptions) => {
+export const initialize = async (options?: StartOptions) => {
   opt = options;
 };
 
-export function getWorker(): SetupWorker {
-  if (worker === undefined) {
-    throw new Error(
-      `[MSW] Failed to retrieve the worker: no active worker found. Did you forget to call "initialize"?`,
-    );
-  }
+const setupHandlers = (msw: MswParameters["msw"]) => {
+  if (worker) {
+    if (window.__MSW_STORYBOOK__) return;
+    worker.resetHandlers();
+    if (msw) {
+      if (Array.isArray(msw) && msw.length > 0) {
+        worker.use(...msw);
+      } else if ("handlers" in msw && msw.handlers) {
+        const handlers = Object.values(msw.handlers)
+          .filter(Boolean)
+          .reduce(
+            (handlers, handlersList) => handlers.concat(handlersList),
+            [] as RequestHandler[],
+          );
 
-  return worker;
-}
+        if (handlers.length > 0) {
+          console.log("handlers", handlers);
+          worker.use(...handlers);
+        }
+      }
+    }
+  }
+};
 
 export const mswLoader = async (context: Context) => {
   const {
     parameters: { msw },
     viewMode,
   } = context;
-  if (!msw) return;
-  if (msw.originalResponses || ((window as any).msw && viewMode !== "docs"))
-    return;
 
-  let worker;
-  if (viewMode === "docs" && (window as any).msw) {
-    worker = typeof global.process === "undefined" && (window as any).msw;
+  if (!msw || (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker)){
+    return;
+  }
+
+  if (viewMode === "docs" && window.__MSW_STORYBOOK__.worker) {
+    worker =
+      typeof global.process === "undefined" && window.__MSW_STORYBOOK__.worker;
   } else {
     worker = typeof global.process === "undefined" && setupWorker();
   }
+  await worker.start(opt);
+  setupHandlers(msw);
 
-  if ("handlers" in msw && msw.handlers) {
-    let handlers = Object.values(msw.handlers)
-      .filter(Boolean)
-      .reduce(
-        (handlers, handlersList) => handlers.concat(handlersList),
-        [] as unknown[],
-      ) as HttpHandler[];
-    if (viewMode === "docs") {
-      const { handlers: modifiedHandlers, context: modifiedContext } =
-        modifyHandlersAndArgs(handlers, context);
-      handlers = modifiedHandlers;
-      context = modifiedContext;
-    }
-
-    if (handlers.length > 0) {
-      worker.use(...handlers);
-    }
-    if (!(window as any).msw) await worker.start(opt || {});
-    // prevents race conditions. If msw is already running, we don't need to start it again, otherwise we do and we wait for it to start before continuing to rendering stories.
-
-    (window as any).msw = worker;
-    const responses = await getOriginalResponses(handlers);
-    context.parameters.msw = {
-      ...msw,
-      originalResponses: responses,
-    };
+  if (worker) {
+    window.__MSW_STORYBOOK__ = window.__MSW_STORYBOOK__ || {};
+    window.__MSW_STORYBOOK__.worker = worker;
   }
-
   return {};
 };
 
-const modifyHandlersAndArgs = (handlers: any, context: Context) => {
-  handlers.forEach((handler: any) => {
-    const modifiedPath =
-      handler.info.path.replace(/\/$/, "") + `/${self.crypto.randomUUID()}`;
-    Object.keys(context.args).forEach((key) => {
-      if (context.args[key] === handler.info.path) {
-        context.args[key] = modifiedPath;
-      }
-    });
-    Object.keys(context.allArgs).forEach((key) => {
-      if (context.allArgs[key] === handler.info.path) {
-        context.allArgs[key] = modifiedPath;
-      }
-    });
-    Object.keys(context.initialArgs).forEach((key) => {
-      if (context.initialArgs[key] === handler.info.path) {
-        context.initialArgs[key] = modifiedPath;
-      }
-    });
-    handler.info.header = handler.info.header.replace(
-      handler.info.path,
-      modifiedPath,
-    );
-    handler.info.path = modifiedPath;
-  });
+// const modifyHandlersAndArgs = (handlers: any, context: Context) => {
+//   handlers.forEach((handler: any) => {
+//     const modifiedPath =
+//       handler.info.path.replace(/\/$/, "") + `/${self.crypto.randomUUID()}`;
+//     Object.keys(context.args).forEach((key) => {
+//       if (context.args[key] === handler.info.path) {
+//         context.args[key] = modifiedPath;
+//       }
+//     });
+//     Object.keys(context.allArgs).forEach((key) => {
+//       if (context.allArgs[key] === handler.info.path) {
+//         context.allArgs[key] = modifiedPath;
+//       }
+//     });
+//     Object.keys(context.initialArgs).forEach((key) => {
+//       if (context.initialArgs[key] === handler.info.path) {
+//         context.initialArgs[key] = modifiedPath;
+//       }
+//     });
+//     handler.info.header = handler.info.header.replace(
+//       handler.info.path,
+//       modifiedPath,
+//     );
+//     handler.info.path = modifiedPath;
+//   });
 
-  return { handlers: handlers, context: context };
-};
+//   return { handlers: handlers, context: context };
+// };
 
-const getOriginalResponses = async (handlers: HttpHandler[]) => {
-  const originalResponses = {} as Record<string, any>;
-  for (const handler of handlers) {
-    const path = handler.info.path;
-    const method = handler.info.method || HttpMethods.GET;
+// const getOriginalResponses = async (handlers: RequestHandler[]) => {
+//   const originalResponses = {} as Record<string, any>;
 
-    if (typeof path !== 'string') {
-      console.warn(
-        `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string path, RegExp is currently not supported. Offending path: ${path}`
-      );
-      continue;
-    }
+//   for (const handler of handlers) {
+//     console.log("handler", handler);
 
-    if (typeof method !== 'string') {
-      console.warn(
-        `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string method, RegExp is currently not supported. Offending path: ${path}`
-      );
-      continue;
-    }
+//     if (handler.info.header.includes("query")) {
+//       const graphQLHandler = handler as GraphQLHandler;
+//       console.log("GraphQL: ", handler.log);
+//       // const originalRequest = new Request(path, {
+//       //   method,
+//       // });
 
-    const originalRequest = new Request(
-      path,
-      {
-        method,
-      },
-    );
+//       // const originalResponse = await fetch(originalRequest);
+//       // let originalData;
+//       // if (!originalResponse.ok) originalData = null;
+//       // else originalData = await originalResponse.json();
+//       // originalResponses[handlerResponseKey(httpHandler)] = {
+//       //   data: originalData,
+//       //   status: originalResponse.status,
+//       // };
+//     } else {
+//       const httpHandler = handler as HttpHandler;
+//       const path = httpHandler.info.path;
+//       const method = httpHandler.info.method || HttpMethods.GET;
 
-    const originalResponse = await fetch(originalRequest);
-    let originalData;
-    if (!originalResponse.ok) originalData = null;
-    else originalData = await originalResponse.json();
-    originalResponses[handlerResponseKey(handler)] = {
-      data: originalData,
-      status: originalResponse.status,
-    };
-  }
+//       if (typeof path !== "string") {
+//         console.warn(
+//           `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string path, RegExp is currently not supported. Offending path: ${path}`,
+//         );
+//         continue;
+//       }
 
-  return originalResponses;
-};
+//       if (typeof method !== "string") {
+//         console.warn(
+//           `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string method, RegExp is currently not supported. Offending path: ${path}`,
+//         );
+//         continue;
+//       }
+
+//       const originalRequest = new Request(path, {
+//         method,
+//       });
+
+//       const originalResponse = await fetch(originalRequest);
+//       let originalData;
+//       if (!originalResponse.ok) originalData = null;
+//       else originalData = await originalResponse.json();
+//       originalResponses[handlerResponseKey(httpHandler)] = {
+//         data: originalData,
+//         status: originalResponse.status,
+//       };
+//     }
+//   }
+//   return originalResponses;
+// };

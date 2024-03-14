@@ -6,7 +6,6 @@ import { RangeControl } from "@storybook/blocks";
 import { ObjectControl } from "@storybook/blocks";
 import { styled } from "@storybook/theming";
 import statusTextMap from "./utils/statusMap";
-import { handlerResponseKeyParts } from "./helpers";
 
 const statusCodes = Object.keys(statusTextMap);
 
@@ -70,7 +69,6 @@ const SBButton = styled(Button)`
 
 export const Panel: React.FC<PanelProps> = (props) => {
   const [addonState, setAddonState] = useAddonState(ADDON_ID, {} as any);
-
   const [dataHasChanged, setDataHasChanged] = React.useState(false);
 
   const emit = useChannel({
@@ -91,7 +89,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
   const onChangeResponse = (
     key: string,
     objectKey: string,
-    objectValue: number | string
+    objectValue: number | string,
   ) => {
     setDataHasChanged(true);
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
@@ -146,12 +144,19 @@ export const Panel: React.FC<PanelProps> = (props) => {
                 {addonState.responses &&
                   Object.keys(addonState.responses).length > 0 &&
                   Object.keys(addonState.responses).map((key) => {
-                    const { method, path } = handlerResponseKeyParts(key);
+                    const { method, path } =
+                      addonState.responses[key].handler.info;
+                    const { operationName } =
+                      addonState.responses[key].handler.info;
                     return (
                       <ObjectControlContainer key={key}>
                         <ObjectControl
-                          name={`${method} ${path}`}
-                          value={addonState.responses[key].data}
+                          name={
+                            method && path ? `${method} ${path}` : operationName
+                          }
+                          value={
+                            addonState.responses[key].response.jsonBodyData
+                          }
                           onChange={(value) =>
                             onChangeResponse("responses", key, value)
                           }

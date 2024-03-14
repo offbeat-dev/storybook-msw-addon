@@ -1,8 +1,38 @@
 import React, { Fragment } from "react";
-import "./mock-api.scss";
+import "../../../mock-api.scss";
+import { useQuery } from "@tanstack/react-query";
+
+function fetchFilms(endpoint: string) {
+  return fetch(endpoint)
+    .then((res) => {
+      if (!res.ok || res.status !== 200) {
+        console.log("ERROR ");
+        throw new Error(res.statusText);
+      }
+      return res;
+    })
+    .then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      return data;
+    });
+}
+
+function useFetchFilms(endpoint: string) {
+  const { isError, error, isFetching, data } = useQuery({
+    queryKey: ["films"],
+    queryFn: () => fetchFilms(endpoint),
+  });
+  return {
+    status: isError ? "error" : isFetching ? "loading" : "success",
+    error: error as Error,
+    results: data,
+  };
+}
 
 type MockApiProps = {
-  endpoint?: string;
+  endpoint: string;
   heading: string;
 };
 
@@ -13,34 +43,10 @@ type MockApiResult = {
   producer: string;
 };
 
-export const MockApi = ({ heading, endpoint }: MockApiProps) => {
-  const [results, setResults] = React.useState<MockApiResult[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
+export const MockApi = ({ endpoint, heading }: MockApiProps) => {
+  const { status, error, results } = useFetchFilms(endpoint);
 
-  const fetchResults = React.useCallback(async () => {
-    if (!endpoint) return;
-    setLoading(true);
-    const response = await fetch(`${endpoint}`);
-
-    if (response.status === 200) {
-      const data = await response.json();
-      setResults(data.results);
-      setLoading(false);
-    } else {
-      setError(
-        `Something went wrong with the request. Status: ${response.status}`
-      );
-      setLoading(false);
-    }
-  }, [endpoint]);
-
-  React.useEffect(() => {
-    console.log("fetching");
-    fetchResults();
-  }, []);
-
-  if (loading) {
+  if (status === "loading") {
     return (
       <div className="storybook-mock-api__loader">
         <div className="storybook-mock-api__loader-symbol"></div>
@@ -51,13 +57,13 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
   return (
     <div className="storybook-mock-api">
       <h2>{heading}</h2>
-      {error && <p>{error}</p>}
-      {(!results || (results?.length === 0 && !error)) && (
+      {status === "error" && <p>{error.message}</p>}
+      {(!results || (results?.length === 0 && status !== "error")) && (
         <p>No results found</p>
       )}
-      {results && results.length > 0 && (
+      {results && status !== "error" && results.length > 0 && (
         <ul className="storybook-mock-api__items ">
-          {results.map((result) => (
+          {results.map((result: MockApiResult) => (
             <li key={result.episode_id} className="storybook-mock-api__item">
               <h3 className="storybook-mock-api__item-title">{result.title}</h3>
               <p className="storybook-mock-api__item-description">

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { HttpResponse, http} from "msw";
-import { MockApi } from "./MockApi";
+import { HttpResponse, http } from "msw";
+import { MockApi } from "./App";
 
-const endpoint = "https://swapi.dev/api/films/";
+const endpoint = "https://swapi.info/api/films/";
 const results = [
   {
     episode_id: 4,
@@ -28,9 +28,8 @@ const results = [
 ];
 
 const meta: Meta<typeof MockApi> = {
-  title: "Example/Mock API",
+  title: "Examples/Fecth",
   component: MockApi,
-  tags: ["autodocs"],
 };
 
 export default meta;
@@ -53,7 +52,7 @@ export const MockedSuccess: Story = {
     msw: {
       handlers: [
         http.get(endpoint, () => {
-          return HttpResponse.json({ results: results });
+          return HttpResponse.json([...results]);
         }),
       ],
     },
@@ -69,7 +68,7 @@ export const MockedError: Story = {
     msw: {
       handlers: [
         http.get(endpoint, () => {
-          return new HttpResponse(null, {status: 404})
+          return new HttpResponse(null, { status: 404 });
         }),
       ],
     },

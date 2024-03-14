@@ -1,0 +1,9 @@
+query AllFilmsQuery {
+  allFilms {
+    films {
+      title
+      episode_id: episodeID
+      opening_crawl: openingCrawl
+    }
+  }
+}
