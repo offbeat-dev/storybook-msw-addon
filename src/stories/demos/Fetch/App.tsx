@@ -22,10 +22,9 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
     if (!endpoint) return;
     setLoading(true);
     const response = await fetch(`${endpoint}`);
-    console.log(response);
     if (response.status === 200) {
       const data = await response.json();
-      setResults(data.results);
+      setResults(data);
       setLoading(false);
     } else {
       setError(
@@ -36,7 +35,6 @@ export const MockApi = ({ heading, endpoint }: MockApiProps) => {
   }, [endpoint]);
 
   React.useEffect(() => {
-    console.log("fetching");
     fetchResults();
   }, []);
 

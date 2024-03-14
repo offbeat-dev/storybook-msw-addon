@@ -1,37 +1,52 @@
 import React, { Fragment } from "react";
-import "../../mock-api.scss";
-import {
-  useQuery,
-  DocumentNode,
-  TypedDocumentNode,
-  OperationVariables,
-} from "@apollo/client";
-import { AllFilmsQueryDocument } from "../../../gql/graphql";
+import "../../../mock-api.scss";
+import { useQuery } from "@tanstack/react-query";
 
-function useFetchFilms() {
-  const { loading, error, data } = useQuery(AllFilmsQueryDocument);
-
-  const results = data ? data.allFilms.films : [];
-
-  return { loading, error, results };
+function fetchFilms(endpoint: string) {
+  return fetch(endpoint)
+    .then((res) => {
+      if (!res.ok || res.status !== 200) {
+        console.log("ERROR ");
+        throw new Error(res.statusText);
+      }
+      return res;
+    })
+    .then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      return data;
+    });
 }
 
-type MockApiGraphQLProps = {
+function useFetchFilms(endpoint: string) {
+  const { isError, error, isFetching, data } = useQuery({
+    queryKey: ["films"],
+    queryFn: () => fetchFilms(endpoint),
+  });
+  return {
+    status: isError ? "error" : isFetching ? "loading" : "success",
+    error: error as Error,
+    results: data,
+  };
+}
+
+type MockApiProps = {
+  endpoint: string;
   heading: string;
-  query: DocumentNode | TypedDocumentNode<any, OperationVariables>;
 };
 
-type MockApiGraphQLResult = {
+type MockApiResult = {
   episode_id: number;
   title: string;
   opening_crawl: string;
   producer: string;
 };
 
-export const MockApiGraphQL = ({ heading }: MockApiGraphQLProps) => {
-  const { loading, error, results } = useFetchFilms();
+export const MockApi = ({ endpoint, heading }: MockApiProps) => {
+  const { status, error, results } = useFetchFilms(endpoint);
 
-  if (loading) {
+  if (status === "loading") {
     return (
       <div className="storybook-mock-api__loader">
         <div className="storybook-mock-api__loader-symbol"></div>
@@ -42,13 +57,13 @@ export const MockApiGraphQL = ({ heading }: MockApiGraphQLProps) => {
   return (
     <div className="storybook-mock-api">
       <h2>{heading}</h2>
-      {error && <p>{error.message}</p>}
-      {(!results || (results?.length === 0 && !error)) && (
+      {status === "error" && <p>{error.message}</p>}
+      {(!results || (results?.length === 0 && status !== "error")) && (
         <p>No results found</p>
       )}
-      {results && results.length > 0 && (
+      {results && status !== "error" && results.length > 0 && (
         <ul className="storybook-mock-api__items ">
-          {results.map((result: MockApiGraphQLResult) => (
+          {results.map((result: MockApiResult) => (
             <li key={result.episode_id} className="storybook-mock-api__item">
               <h3 className="storybook-mock-api__item-title">{result.title}</h3>
               <p className="storybook-mock-api__item-description">

@@ -1,8 +1,12 @@
+import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { HttpResponse, http } from "msw";
+import { http, HttpResponse } from "msw";
 import { MockApi } from "./App";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const endpoint = "https://swapi.info/api/films/";
+const defaultQueryClient = new QueryClient();
+
 const results = [
   {
     episode_id: 4,
@@ -27,8 +31,22 @@ const results = [
   },
 ];
 
+const mockedQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+const MockTemplate = () => (
+  <QueryClientProvider client={mockedQueryClient}>
+    <MockApi heading={"Mocked Films API"} endpoint={endpoint} />
+  </QueryClientProvider>
+);
+
 const meta: Meta<typeof MockApi> = {
-  title: "Examples/Fecth",
+  title: "Examples/React Query/Fetch",
   component: MockApi,
 };
 
@@ -36,39 +54,19 @@ export default meta;
 
 type Story = StoryObj<typeof MockApi>;
 
-export const DefaultBehavior: Story = {
-  args: {
-    heading: "Original Endpoint",
-    endpoint: endpoint,
-  },
-};
+export const DefaultBehavior = () => (
+  <QueryClientProvider client={defaultQueryClient}>
+    <MockApi heading={"Original Endpoint"} endpoint={endpoint} />
+  </QueryClientProvider>
+);
 
 export const MockedSuccess: Story = {
-  args: {
-    heading: "Mocked Success",
-    endpoint: endpoint,
-  },
+  render: MockTemplate,
   parameters: {
     msw: {
       handlers: [
         http.get(endpoint, () => {
           return HttpResponse.json([...results]);
-        }),
-      ],
-    },
-  },
-};
-
-export const MockedError: Story = {
-  args: {
-    heading: "Mocked Server Error",
-    endpoint: endpoint,
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get(endpoint, () => {
-          return new HttpResponse(null, { status: 404 });
         }),
       ],
     },
