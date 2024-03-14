@@ -4,10 +4,8 @@ import { GraphQLClient, gql } from "graphql-request";
 import { useQuery } from "@tanstack/react-query";
 import { AllFilmsQueryDocument } from "../../../../gql/graphql";
 
-const useGetFilms = () => {
-  const graphQLClient = new GraphQLClient(
-    "https://swapi-graphql.netlify.app/.netlify/functions/index",
-  );
+const useGetFilms = (endpoint:string) => {
+  const graphQLClient = new GraphQLClient(endpoint);
 
   const { isError, error, isFetching, data } = useQuery({
     queryKey: ["films"],
@@ -34,7 +32,7 @@ type MockApiResult = {
 };
 
 export const MockApi = ({ endpoint, heading }: MockApiProps) => {
-  const { status, results, error } = useGetFilms();
+  const { status, results, error } = useGetFilms(endpoint);
 
   if (status === "loading") {
     return (

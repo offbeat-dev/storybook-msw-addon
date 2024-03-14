@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 import "../../mock-api.scss";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 
 function fetchFilms(endpoint: string) {
   return fetch(endpoint)
@@ -15,8 +15,10 @@ function fetchFilms(endpoint: string) {
 }
 
 function useFetchFilms(endpoint: string) {
-  const { isError, error, isFetching, data } = useQuery("films", () =>
-    fetchFilms(endpoint),
+  const { isError, error, isFetching, data } = useQuery({
+    queryKey:["films"], 
+    queryFn: () =>
+    fetchFilms(endpoint)},
   );
   return {
     status: isError ? "error" : isFetching ? "loading" : "success",
