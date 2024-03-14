@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.3.0...v2.0.0) (2024-03-14)
+
+
+* v2.0.0 ([b14d363](https://github.com/offbeat-dev/storybook-msw-addon/commit/b14d36374ce5aed7c8cb09884d4ff2c54e7156fe))
+
+
+### BREAKING CHANGES
+
+* `extends` key in config file is now used for extending other config files
+
 # [1.3.0](https://github.com/offbeat-dev/storybook-msw-addon/compare/v1.2.1...v1.3.0) (2024-03-04)
 
 
