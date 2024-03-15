@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.1...v2.0.2) (2024-03-15)
+
+
+### Bug Fixes
+
+* remove console logs and deprecated props from panel button ([5079820](https://github.com/offbeat-dev/storybook-msw-addon/commit/5079820031fcd23847fa63e1020ba6a87445d7cd))
+
 ## [2.0.1](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.0...v2.0.1) (2024-03-14)
 
 
