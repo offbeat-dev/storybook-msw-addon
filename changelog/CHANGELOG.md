@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.2...v2.0.3) (2024-03-15)
+
+
+### Bug Fixes
+
+* add delay to graphql mock requests ([a3f76bc](https://github.com/offbeat-dev/storybook-msw-addon/commit/a3f76bcb9c93b15d7b6d2df73fc022614667b535))
+
 ## [2.0.2](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.1...v2.0.2) (2024-03-15)
 
 
