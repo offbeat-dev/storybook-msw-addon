@@ -36,7 +36,6 @@ const setupHandlers = (msw: MswParameters["msw"]) => {
           );
 
         if (handlers.length > 0) {
-          console.log("handlers", handlers);
           worker.use(...handlers);
         }
       }
@@ -69,89 +68,3 @@ export const mswLoader = async (context: Context) => {
   }
   return {};
 };
-
-// const modifyHandlersAndArgs = (handlers: any, context: Context) => {
-//   handlers.forEach((handler: any) => {
-//     const modifiedPath =
-//       handler.info.path.replace(/\/$/, "") + `/${self.crypto.randomUUID()}`;
-//     Object.keys(context.args).forEach((key) => {
-//       if (context.args[key] === handler.info.path) {
-//         context.args[key] = modifiedPath;
-//       }
-//     });
-//     Object.keys(context.allArgs).forEach((key) => {
-//       if (context.allArgs[key] === handler.info.path) {
-//         context.allArgs[key] = modifiedPath;
-//       }
-//     });
-//     Object.keys(context.initialArgs).forEach((key) => {
-//       if (context.initialArgs[key] === handler.info.path) {
-//         context.initialArgs[key] = modifiedPath;
-//       }
-//     });
-//     handler.info.header = handler.info.header.replace(
-//       handler.info.path,
-//       modifiedPath,
-//     );
-//     handler.info.path = modifiedPath;
-//   });
-
-//   return { handlers: handlers, context: context };
-// };
-
-// const getOriginalResponses = async (handlers: RequestHandler[]) => {
-//   const originalResponses = {} as Record<string, any>;
-
-//   for (const handler of handlers) {
-//     console.log("handler", handler);
-
-//     if (handler.info.header.includes("query")) {
-//       const graphQLHandler = handler as GraphQLHandler;
-//       console.log("GraphQL: ", handler.log);
-//       // const originalRequest = new Request(path, {
-//       //   method,
-//       // });
-
-//       // const originalResponse = await fetch(originalRequest);
-//       // let originalData;
-//       // if (!originalResponse.ok) originalData = null;
-//       // else originalData = await originalResponse.json();
-//       // originalResponses[handlerResponseKey(httpHandler)] = {
-//       //   data: originalData,
-//       //   status: originalResponse.status,
-//       // };
-//     } else {
-//       const httpHandler = handler as HttpHandler;
-//       const path = httpHandler.info.path;
-//       const method = httpHandler.info.method || HttpMethods.GET;
-
-//       if (typeof path !== "string") {
-//         console.warn(
-//           `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string path, RegExp is currently not supported. Offending path: ${path}`,
-//         );
-//         continue;
-//       }
-
-//       if (typeof method !== "string") {
-//         console.warn(
-//           `[MSW] Failed to retrieve the original response for the given handler. Can only retrieve original responses for handlers with a string method, RegExp is currently not supported. Offending path: ${path}`,
-//         );
-//         continue;
-//       }
-
-//       const originalRequest = new Request(path, {
-//         method,
-//       });
-
-//       const originalResponse = await fetch(originalRequest);
-//       let originalData;
-//       if (!originalResponse.ok) originalData = null;
-//       else originalData = await originalResponse.json();
-//       originalResponses[handlerResponseKey(httpHandler)] = {
-//         data: originalData,
-//         status: originalResponse.status,
-//       };
-//     }
-//   }
-//   return originalResponses;
-// };

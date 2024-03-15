@@ -173,7 +173,6 @@ export const Panel: React.FC<PanelProps> = (props) => {
                 <p>Reset the original mock response data</p>
               </Label>
               <SBButton
-                primary={true}
                 onClick={onReset}
                 disabled={!dataHasChanged}
               >

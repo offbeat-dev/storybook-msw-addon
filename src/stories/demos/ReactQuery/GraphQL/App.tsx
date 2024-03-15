@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 import "../../../mock-api.scss";
-import { GraphQLClient, gql } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
 import { useQuery } from "@tanstack/react-query";
 import { AllFilmsQueryDocument } from "../../../../gql/graphql";
 

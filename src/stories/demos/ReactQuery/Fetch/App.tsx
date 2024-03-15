@@ -6,7 +6,6 @@ function fetchFilms(endpoint: string) {
   return fetch(endpoint)
     .then((res) => {
       if (!res.ok || res.status !== 200) {
-        console.log("ERROR ");
         throw new Error(res.statusText);
       }
       return res;

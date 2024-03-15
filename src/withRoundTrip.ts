@@ -39,7 +39,8 @@ const updateHandlers = () => {
   if (!window.__MSW_STORYBOOK__) return;
   const worker = window.__MSW_STORYBOOK__.worker;
   worker.resetHandlers();
-  console.log("HANDLERS", worker.listHandlers());
+
+
   window.__MSW_STORYBOOK__.handlers?.forEach((handler) => {
     if (!window.__MSW_STORYBOOK__.handlersMap[handler.info.header]) return;
     const currentResponse =
@@ -59,7 +60,6 @@ const updateHandlers = () => {
         }),
       );
     } else if ((handler as GraphQLHandler).info.operationName) {
-      console.log(currentResponse);
       const graphQLHandler = handler as GraphQLHandler;
       worker.use(
         graphql.query(
@@ -121,11 +121,6 @@ export const withRoundTrip = (
       },
       [EVENTS.UPDATE_RESPONSES]: ({ key, objectKey, objectValue }) => {
         if (key === "responses") {
-          console.log(
-            "UPDATE_RESPONSES",
-            window.__MSW_STORYBOOK__.handlersMap[objectKey],
-          );
-
           window.__MSW_STORYBOOK__.handlersMap[objectKey].response = {
             ...window.__MSW_STORYBOOK__.handlersMap[objectKey].response,
             jsonBodyData: objectValue,
@@ -189,7 +184,6 @@ const logEvents = () => {
 
   worker.events.on("request:match", async ({ request, requestId }) => {
     if (SET_INITIAL_RESPONSES) return;
-    console.log("request:match", request, requestId);
     let { handler, response } = await getResponse(
       window.__MSW_STORYBOOK__.handlers || [],
       request,
