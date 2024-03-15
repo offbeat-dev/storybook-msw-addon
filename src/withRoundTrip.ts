@@ -40,7 +40,6 @@ const updateHandlers = () => {
   const worker = window.__MSW_STORYBOOK__.worker;
   worker.resetHandlers();
 
-
   window.__MSW_STORYBOOK__.handlers?.forEach((handler) => {
     if (!window.__MSW_STORYBOOK__.handlersMap[handler.info.header]) return;
     const currentResponse =
@@ -64,8 +63,8 @@ const updateHandlers = () => {
       worker.use(
         graphql.query(
           graphQLHandler.info.operationName,
-          ({ query, variables }) => {
-            console;
+          async ({ query, variables }) => {
+            await delay(responseDelay);
             return HttpResponse.json(
               { ...currentResponse.jsonBodyData },
               { status: status },
