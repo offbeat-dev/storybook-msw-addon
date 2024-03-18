@@ -41,7 +41,7 @@ const mockedQueryClient = new QueryClient({
 
 const MockTemplate = () => (
   <QueryClientProvider client={mockedQueryClient}>
-    <MockApi heading={"Mocked Films API"} endpoint={endpoint} />
+    <MockApi heading={"Mocked Success"} endpoint={endpoint} />
   </QueryClientProvider>
 );
 

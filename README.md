@@ -56,7 +56,7 @@ When running Storybook, you have to serve the folder where you have init the MSW
 Enable MSW in Storybook by initializing MSW and providing the MSW loader in `./storybook/preview.js`:
 
 ```js
-import { initialize, mswLoader } from "msw-storybook-addon";
+import { initialize, mswLoader } from "storybook-msw-addon";
 
 // Initialize MSW
 initialize();
@@ -105,7 +105,7 @@ For example, if you want MSW to bypass unhandled requests you can initialize the
 
 ```js
 // preview.js
-import { initialize } from "msw-storybook-addon";
+import { initialize } from "storybook-msw-addon";
 
 initialize({
   onUnhandledRequest: "bypass",

@@ -48,7 +48,7 @@ const results = [
 
 export const DefaultBehavior = () => (
   <ApolloProvider client={defaultClient}>
-    <MockApiGraphQL heading={"Mock Films API"} query={AllFilmsQuery} />
+    <MockApiGraphQL heading={"Original Endpoint"} query={AllFilmsQuery} />
   </ApolloProvider>
 );
 
