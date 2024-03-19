@@ -28,7 +28,7 @@ const results = [
 ];
 
 const meta: Meta<typeof MockApi> = {
-  title: "Examples/Fecth",
+  title: "Examples/Fetch",
   component: MockApi,
 };
 
@@ -53,6 +53,9 @@ export const MockedSuccess: Story = {
       handlers: [
         http.get(endpoint, () => {
           return HttpResponse.json([...results]);
+        }),
+        http.post(endpoint, () => {
+          return HttpResponse.json({ ...results[0] });
         }),
       ],
     },

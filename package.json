@@ -11,6 +11,7 @@
     "service",
     "worker"
   ],
+  "type": "module",
   "packageManager": "pnpm@8.15.4",
   "repository": {
     "type": "git",
@@ -27,25 +28,20 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
-    },
-    "./manager": {
-      "require": "./dist/manager.js",
-      "import": "./dist/manager.mjs",
-      "types": "./dist/manager.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./preview": {
-      "require": "./dist/preview.js",
-      "import": "./dist/preview.mjs",
-      "types": "./dist/preview.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/preview.js",
+      "require": "./dist/preview.cjs"
     },
+    "./preset": "./dist/preset.cjs",
+    "./manager": "./dist/manager.js",
     "./package.json": "./package.json"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "typings": "global1.d.ts",
   "files": [
     "dist/**/*",
     "README.md",
@@ -56,11 +52,11 @@
     "codegen": "graphql-codegen --config codegen.ts",
     "clean": "rimraf ./dist",
     "commit": "npm run git-cz",
-    "prebuild": "pnpm run clean",
+    "prebuild": "pnpm clean",
     "build": "tsup",
-    "build:watch": "pnpm run build --watch",
+    "build:watch": "pnpm build --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"pnpm run build:watch\" \"pnpm run storybook --quiet\"",
+    "start": "concurrently \"pnpm build:watch\" \"pnpm storybook --quiet\"",
     "prerelease": "zx scripts/prepublish-checks.mjs",
     "release": "pnpm run build && auto shipit",
     "eject-ts": "zx scripts/eject-typescript.mjs",
@@ -84,28 +80,30 @@
     "@graphql-codegen/typescript-react-query": "^6.1.0",
     "@parcel/watcher": "^2.4.1",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/commit-analyzer": "^12.0.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^9.2.6",
-    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/github": "^10.0.2",
+    "@semantic-release/npm": "^12.0.0",
     "@semantic-release/release-notes-generator": "^12.1.0",
-    "@storybook/addon-essentials": "^8.0.0",
-    "@storybook/addon-interactions": "^8.0.0",
-    "@storybook/addon-links": "^8.0.0",
-    "@storybook/blocks": "^8.0.0",
-    "@storybook/components": "^8.0.0",
-    "@storybook/core-events": "^8.0.0",
-    "@storybook/manager-api": "^8.0.0",
-    "@storybook/preview-api": "^8.0.0",
-    "@storybook/react": "^8.0.0",
-    "@storybook/react-vite": "^8.0.0",
-    "@storybook/test": "^8.0.0",
-    "@storybook/theming": "^8.0.0",
-    "@storybook/types": "^8.0.0",
+    "@storybook/addon-essentials": "8.0.1",
+    "@storybook/addon-interactions": "8.0.1",
+    "@storybook/addon-links": "8.0.1",
+    "@storybook/blocks": "8.0.1",
+    "@storybook/components": "8.0.1",
+    "@storybook/core-events": "8.0.1",
+    "@storybook/manager": "8.0.1",
+    "@storybook/manager-api": "8.0.1",
+    "@storybook/preview": "8.0.1",
+    "@storybook/preview-api": "8.0.1",
+    "@storybook/react": "8.0.1",
+    "@storybook/react-vite": "8.0.1",
+    "@storybook/test": "8.0.1",
+    "@storybook/theming": "8.0.1",
+    "@storybook/types": "8.0.1",
     "@tanstack/react-query": "^5.28.0",
-    "@types/node": "^20.11.27",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
+    "@types/node": "^20.11.29",
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",
     "auto": "^11.1.1",
     "boxen": "^7.1.1",
@@ -114,8 +112,9 @@
     "dedent": "^1.5.1",
     "graphql": "^16.8.1",
     "husky": "^9.0.11",
-    "msw": "^2.2.3",
-    "prettier": "^3.1.0",
+    "msw": "^2.2.7",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.2.5",
     "prompts": "^2.4.2",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
@@ -124,22 +123,27 @@
     "sass": "^1.72.0",
     "semantic-release": "^23.0.0",
     "storybook": "^8.0.0",
-    "ts-node": "^10.9.2",
     "tsup": "^8.0.2",
     "typescript": "^5.4.2",
     "vite": "^5.1.6",
     "zx": "^7.2.3"
   },
-  "peerDependencies": {
-    "@storybook/manager-api": "^8.0.0",
-    "@storybook/preview-api": "^8.0.0",
-    "@storybook/theming": "^8.0.0",
-    "@storybook/types": "^8.0.0",
-    "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
-    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
-  },
   "publishConfig": {
     "access": "public"
+  },
+  "bundler": {
+    "exportEntries": [
+      "src/index.ts"
+    ],
+    "managerEntries": [
+      "src/manager.tsx"
+    ],
+    "previewEntries": [
+      "src/preview.ts"
+    ],
+    "nodeEntries": [
+      "src/preset.ts"
+    ]
   },
   "storybook": {
     "displayName": "Mock Service Worker Addon Panel",
@@ -157,7 +161,9 @@
     "icon": "https://raw.githubusercontent.com/offbeat-dev/storybook-msw-addon/main/storybook-msw-addon.png"
   },
   "msw": {
-    "workerDirectory": "public"
+    "workerDirectory": [
+      "public"
+    ]
   },
   "resolutions": {
     "jackspeak": "2.1.1"

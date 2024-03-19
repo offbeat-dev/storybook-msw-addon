@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAddonState, useChannel } from "@storybook/manager-api";
 import { AddonPanel, Form, ScrollArea, Button } from "@storybook/components";
 import { ADDON_ID, EVENTS } from "./constants";
@@ -95,6 +95,10 @@ export const Panel: React.FC<PanelProps> = (props) => {
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
   };
 
+  useEffect(() => {
+    console.log("addonState", addonState.responses);
+  }, [addonState.responses]);
+
   const getRender = () => {
     if (
       addonState.delay !== undefined &&
@@ -172,10 +176,7 @@ export const Panel: React.FC<PanelProps> = (props) => {
                 <h3>Reset</h3>
                 <p>Reset the original mock response data</p>
               </Label>
-              <SBButton
-                onClick={onReset}
-                disabled={!dataHasChanged}
-              >
+              <SBButton onClick={onReset} disabled={!dataHasChanged}>
                 Reset Mock Data
               </SBButton>
             </div>

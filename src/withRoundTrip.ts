@@ -96,6 +96,11 @@ export const withRoundTrip = (
     if (!window.__MSW_STORYBOOK__.handlersMap)
       window.__MSW_STORYBOOK__.handlersMap = {};
     // Define events to listen to from the addon panel
+    console.log(
+      "msw-storybook-addon: setting up handlers",
+      ctx.parameters.msw,
+      window.__MSW_STORYBOOK__.handlersMap,
+    );
     emit = useChannel({
       [EVENTS.UPDATE]: ({ key, value }) => {
         if (key === "delay") {

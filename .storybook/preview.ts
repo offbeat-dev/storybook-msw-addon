@@ -1,6 +1,7 @@
 import type { Preview } from "@storybook/react";
-import { initialize, mswLoader } from "../dist/index.mjs";
 import "../src/styles/globals.scss";
+import { initialize } from "../dist/index.js";
+import { mswLoader } from "../dist/index.js";
 
 initialize({
   onUnhandledRequest: "bypass",
@@ -18,8 +19,7 @@ const preview: Preview = {
       },
     },
   },
+  loaders: [mswLoader],
 };
-
-export const loaders = [mswLoader];
 
 export default preview;

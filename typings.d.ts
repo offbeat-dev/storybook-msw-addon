@@ -5,7 +5,7 @@ import type {
   GraphQLRequestHandler,
   JsonBodyType,
 } from "msw";
-import { SetupWorker } from "msw/browser";
+import type { SetupWorker } from "msw/browser";
 
 declare global {
   interface Window {

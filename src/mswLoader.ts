@@ -1,5 +1,6 @@
-import { RequestHandler } from "msw";
-import { SetupWorker, StartOptions, setupWorker } from "msw/browser";
+import type { RequestHandler } from "msw";
+import type { SetupWorker, StartOptions } from "msw/browser";
+import { setupWorker } from "msw/browser";
 
 export type MswParameters = {
   msw?: {
@@ -49,7 +50,7 @@ export const mswLoader = async (context: Context) => {
     viewMode,
   } = context;
 
-  if (!msw || (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker)){
+  if (!msw || (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker)) {
     return;
   }
 

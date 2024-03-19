@@ -1,10 +1,14 @@
 /* eslint-disable eslint-comments/disable-enable-pair */
 /* eslint-disable no-console */
-const prompts = require("prompts");
-const dedent = require("ts-dedent").default;
-const path = require("path");
-const fs = require("fs");
-const { execSync } = require("child_process");
+import prompts from "prompts";
+import { dedent } from "ts-dedent";
+import { dirname, resolve } from "path";
+import { readFile, writeFile } from "fs/promises";
+import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // CLI questions
 const questions = [
@@ -101,9 +105,9 @@ const main = async () => {
         dedent`
         Welcome to Storybook addon-kit!
         Please answer the following questions while we prepare this project for you:\n
-      `
-      )
-    )
+      `,
+      ),
+    ),
   );
 
   const {
@@ -120,18 +124,18 @@ const main = async () => {
   if (!authorName || !packageName) {
     console.log(
       `\nProcess canceled by the user. Feel free to run ${bold(
-        "yarn postinstall"
-      )} to execute the installation steps again!`
+        "npm run postinstall",
+      )} to execute the installation steps again!`,
     );
     process.exit(0);
   }
 
   const authorField = authorName + (authorEmail ? ` <${authorEmail}>` : "");
 
-  const packageJson = path.resolve(__dirname, `../package.json`);
+  const packageJson = resolve(__dirname, `../package.json`);
 
   console.log(`\n👷 Updating package.json...`);
-  let packageJsonContents = fs.readFileSync(packageJson, "utf-8");
+  let packageJsonContents = await readFile(packageJson, "utf-8");
 
   packageJsonContents = packageJsonContents
     .replace(REPLACE_TEMPLATES.packageName, packageName)
@@ -141,13 +145,13 @@ const main = async () => {
     .replace(REPLACE_TEMPLATES.repoUrl, repoUrl)
     .replace(REPLACE_TEMPLATES.displayName, displayName)
     .replace(REPLACE_TEMPLATES.supportedFrameworks, supportedFrameworks)
-    .replace(/\s*"postinstall".*node.*scripts\/welcome.js.*",/, '');
+    .replace(/\s*"postinstall".*node.*scripts\/welcome.js.*",/, "");
 
-  fs.writeFileSync(packageJson, packageJsonContents);
+  await writeFile(packageJson, packageJsonContents);
 
   console.log("📝 Updating the README...");
-  const readme = path.resolve(__dirname, `../README.md`);
-  let readmeContents = fs.readFileSync(readme, "utf-8");
+  const readme = resolve(__dirname, `../README.md`);
+  let readmeContents = await readFile(readme, "utf-8");
 
   const regex = /<\!-- README START -->([\s\S]*)<\!-- README END -->/g;
 
@@ -156,24 +160,24 @@ const main = async () => {
     dedent`
     # Storybook Addon ${displayName}
     ${addonDescription}
-    `
+    `,
   );
 
-  fs.writeFileSync(readme, readmeContents);
+  await writeFile(readme, readmeContents);
 
   console.log(`📦 Creating a commit...`);
   execSync('git add . && git commit -m "project setup" --no-verify');
 
   console.log(
     dedent`\n
-      🚀 All done! Run \`yarn start\` to get started.
+      🚀 All done! Run \`npm run start\` to get started.
 
       Thanks for using this template, ${authorName.split(" ")[0]}! ❤️
 
       Feel free to open issues in case there are bugs/feature requests at:
 
       ${bold(blue("https://github.com/storybookjs/addon-kit"))}\n
-    `
+    `,
   );
 };
 
