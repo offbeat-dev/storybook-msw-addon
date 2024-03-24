@@ -16,15 +16,17 @@ type Context = {
 
 let worker: SetupWorker;
 let opt: StartOptions;
+let initialHandlers: RequestHandler[] = [];
 
-export const initialize = async (options?: StartOptions) => {
+export const initialize = async (options?: StartOptions, handlers: RequestHandler[] = []) => {
   opt = options;
+  initialHandlers = handlers;
 };
 
 const setupHandlers = (msw: MswParameters["msw"]) => {
   if (worker) {
     if (window.__MSW_STORYBOOK__) return;
-    worker.resetHandlers();
+    worker.resetHandlers(...initialHandlers);
     if (msw) {
       if (Array.isArray(msw) && msw.length > 0) {
         worker.use(...msw);
