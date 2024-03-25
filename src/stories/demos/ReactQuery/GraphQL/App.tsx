@@ -1,10 +1,11 @@
-import React, { Fragment } from "react";
+import * as React from "react";
+import { Fragment } from "react";
 import "../../../mock-api.scss";
 import { GraphQLClient } from "graphql-request";
 import { useQuery } from "@tanstack/react-query";
 import { AllFilmsQueryDocument } from "../../../../gql/graphql";
 
-const useGetFilms = (endpoint:string) => {
+const useGetFilms = (endpoint: string) => {
   const graphQLClient = new GraphQLClient(endpoint);
 
   const { isError, error, isFetching, data } = useQuery({

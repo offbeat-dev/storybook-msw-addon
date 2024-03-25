@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import * as React from "react";
 import { useAddonState, useChannel } from "@storybook/manager-api";
 import { AddonPanel, Form, ScrollArea, Button } from "@storybook/components";
 import { ADDON_ID, EVENTS } from "./constants";
@@ -94,10 +94,6 @@ export const Panel: React.FC<PanelProps> = (props) => {
     setDataHasChanged(true);
     emit(EVENTS.UPDATE_RESPONSES, { key, objectKey, objectValue });
   };
-
-  useEffect(() => {
-    console.log("addonState", addonState.responses);
-  }, [addonState.responses]);
 
   const getRender = () => {
     if (
