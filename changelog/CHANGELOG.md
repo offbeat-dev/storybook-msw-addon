@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.5...v2.1.0) (2024-03-25)
+
+
+### Features
+
+* add support for initial handlers ([7b5bfe6](https://github.com/offbeat-dev/storybook-msw-addon/commit/7b5bfe651d1bdc21ad9b77806da1e0a33674ec43))
+
 ## [2.0.5](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.0.4...v2.0.5) (2024-03-19)
 
 

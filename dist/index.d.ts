@@ -61,7 +61,7 @@ type Context = {
     parameters: MswParameters;
     viewMode: string;
 };
-declare const initialize: (options?: StartOptions) => Promise<void>;
+declare const initialize: (options?: StartOptions, handlers?: R[]) => Promise<void>;
 declare const mswLoader: (context: Context) => Promise<{}>;
 
 export { type MswParameters, initialize, mswLoader };
