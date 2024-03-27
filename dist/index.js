@@ -1,55 +1,3449 @@
-var Ue=/(%?)(%([sdijo]))/g;function He(e,t){switch(t){case"s":return e;case"d":case"i":return Number(e);case"j":return JSON.stringify(e);case"o":{if(typeof e=="string")return e;let r=JSON.stringify(e);return r==="{}"||r==="[]"||/^\[object .+?\]$/.test(r)?e:r}}}function O(e,...t){if(t.length===0)return e;let r=0,s=e.replace(Ue,(n,i,o,l)=>{let a=t[r],c=He(a,l);return i?n:(r++,c)});return r<t.length&&(s+=` ${t.slice(r).join(" ")}`),s=s.replace(/%{2,2}/g,"%"),s}var je=2;function De(e){if(!e.stack)return;let t=e.stack.split(`
-`);t.splice(1,je),e.stack=t.join(`
-`);}var Be=class extends Error{constructor(e,...t){super(e),this.message=e,this.name="Invariant Violation",this.message=O(e,...t),De(this);}},k=(e,t,...r)=>{if(!e)throw new Be(t,...r)};k.as=(e,t,r,...s)=>{if(!t){let n=s.length===0?r:O(r,s),i;try{i=Reflect.construct(e,[n]);}catch{i=e(n);}throw i}};var Fe="[MSW]";function U(e,...t){let r=O(e,...t);return `${Fe} ${r}`}function $e(e,...t){console.warn(U(e,...t));}function Ge(e,...t){console.error(U(e,...t));}var d={formatMessage:U,warn:$e,error:Ge};var Ne=/[\/\\]msw[\/\\]src[\/\\](.+)/,Xe=/(node_modules)?[\/\\]lib[\/\\](core|browser|node|native|iife)[\/\\]|^[^\/\\]*$/;function Y(e){let t=e.stack;if(!t)return;let s=t.split(`
-`).slice(1).find(i=>!(Ne.test(i)||Xe.test(i)));return s?s.replace(/\s*at [^()]*\(([^)]+)\)/,"$1").replace(/^@/,""):void 0}function J(e){return e?typeof e[Symbol.iterator]=="function":!1}var M=class e{static cache=new WeakMap;info;isUsed;resolver;resolverGenerator;resolverGeneratorResult;options;constructor(t){this.resolver=t.resolver,this.options=t.options;let r=Y(new Error);this.info={...t.info,callFrame:r},this.isUsed=!1;}async parse(t){return {}}async test(t){let r=await this.parse({request:t.request,resolutionContext:t.resolutionContext});return this.predicate({request:t.request,parsedResult:r,resolutionContext:t.resolutionContext})}extendResolverArgs(t){return {}}cloneRequestOrGetFromCache(t){let r=e.cache.get(t);if(typeof r<"u")return r;let s=t.clone();return e.cache.set(t,s),s}async run(t){if(this.isUsed&&this.options?.once)return null;let r=this.cloneRequestOrGetFromCache(t.request),s=await this.parse({request:t.request,resolutionContext:t.resolutionContext});if(!this.predicate({request:t.request,parsedResult:s,resolutionContext:t.resolutionContext})||this.isUsed&&this.options?.once)return null;this.isUsed=!0;let i=this.wrapResolver(this.resolver),o=this.extendResolverArgs({request:t.request,parsedResult:s}),a=await i({...o,requestId:t.requestId,request:t.request}).catch(u=>{if(u instanceof Response)return u;throw u});return this.createExecutionResult({request:r,requestId:t.requestId,response:a,parsedResult:s})}wrapResolver(t){return async r=>{let s=this.resolverGenerator||await t(r);if(J(s)){this.isUsed=!1;let{value:n,done:i}=s[Symbol.iterator]().next(),o=await n;return i&&(this.isUsed=!0),!o&&i?(k(this.resolverGeneratorResult,"Failed to returned a previously stored generator response: the value is not a valid Response."),this.resolverGeneratorResult.clone()):(this.resolverGenerator||(this.resolverGenerator=s),o&&(this.resolverGeneratorResult=o?.clone()),o)}return s}}createExecutionResult(t){return {handler:this,request:t.request,requestId:t.requestId,response:t.response,parsedResult:t.parsedResult}}};var z=async e=>{try{return {error:null,data:await e().catch(r=>{throw r})}}catch(t){return {error:t,data:null}}};var Q=async({request:e,requestId:t,handlers:r,resolutionContext:s})=>{let n=null,i=null;for(let o of r)if(i=await o.run({request:e,requestId:t,resolutionContext:s}),i!==null&&(n=o),i?.response)break;return n?{handler:n,parsedResult:i?.parsedResult,response:i?.response}:null};function Z(e){if(typeof location>"u")return e.toString();let t=e instanceof URL?e:new URL(e);return t.origin===location.origin?t.pathname:t.origin+t.pathname}async function ee(e,t="warn"){let r=new URL(e.url),s=Z(r),n=`intercepted a request without a matching request handler:
+// node_modules/.pnpm/outvariant@1.4.2/node_modules/outvariant/lib/index.mjs
+var POSITIONALS_EXP = /(%?)(%([sdijo]))/g;
+function serializePositional(positional, flag) {
+  switch (flag) {
+    case "s":
+      return positional;
+    case "d":
+    case "i":
+      return Number(positional);
+    case "j":
+      return JSON.stringify(positional);
+    case "o": {
+      if (typeof positional === "string") {
+        return positional;
+      }
+      const json = JSON.stringify(positional);
+      if (json === "{}" || json === "[]" || /^\[object .+?\]$/.test(json)) {
+        return positional;
+      }
+      return json;
+    }
+  }
+}
+function format(message, ...positionals) {
+  if (positionals.length === 0) {
+    return message;
+  }
+  let positionalIndex = 0;
+  let formattedMessage = message.replace(
+    POSITIONALS_EXP,
+    (match, isEscaped, _, flag) => {
+      const positional = positionals[positionalIndex];
+      const value = serializePositional(positional, flag);
+      if (!isEscaped) {
+        positionalIndex++;
+        return value;
+      }
+      return match;
+    }
+  );
+  if (positionalIndex < positionals.length) {
+    formattedMessage += ` ${positionals.slice(positionalIndex).join(" ")}`;
+  }
+  formattedMessage = formattedMessage.replace(/%{2,2}/g, "%");
+  return formattedMessage;
+}
+var STACK_FRAMES_TO_IGNORE = 2;
+function cleanErrorStack(error3) {
+  if (!error3.stack) {
+    return;
+  }
+  const nextStack = error3.stack.split("\n");
+  nextStack.splice(1, STACK_FRAMES_TO_IGNORE);
+  error3.stack = nextStack.join("\n");
+}
+var InvariantError = class extends Error {
+  constructor(message, ...positionals) {
+    super(message);
+    this.message = message;
+    this.name = "Invariant Violation";
+    this.message = format(message, ...positionals);
+    cleanErrorStack(this);
+  }
+};
+var invariant = (predicate, message, ...positionals) => {
+  if (!predicate) {
+    throw new InvariantError(message, ...positionals);
+  }
+};
+invariant.as = (ErrorConstructor, predicate, message, ...positionals) => {
+  if (!predicate) {
+    const formatMessage2 = positionals.length === 0 ? message : format(message, positionals);
+    let error3;
+    try {
+      error3 = Reflect.construct(ErrorConstructor, [formatMessage2]);
+    } catch (err) {
+      error3 = ErrorConstructor(formatMessage2);
+    }
+    throw error3;
+  }
+};
 
-  \u2022 ${e.method} ${s}
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/devUtils.mjs
+var LIBRARY_PREFIX = "[MSW]";
+function formatMessage(message, ...positionals) {
+  const interpolatedMessage = format(message, ...positionals);
+  return `${LIBRARY_PREFIX} ${interpolatedMessage}`;
+}
+function warn(message, ...positionals) {
+  console.warn(formatMessage(message, ...positionals));
+}
+function error(message, ...positionals) {
+  console.error(formatMessage(message, ...positionals));
+}
+var devUtils = {
+  formatMessage,
+  warn,
+  error
+};
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/getCallFrame.mjs
+var SOURCE_FRAME = /[\/\\]msw[\/\\]src[\/\\](.+)/;
+var BUILD_FRAME = /(node_modules)?[\/\\]lib[\/\\](core|browser|node|native|iife)[\/\\]|^[^\/\\]*$/;
+function getCallFrame(error3) {
+  const stack = error3.stack;
+  if (!stack) {
+    return;
+  }
+  const frames = stack.split("\n").slice(1);
+  const declarationFrame = frames.find((frame) => {
+    return !(SOURCE_FRAME.test(frame) || BUILD_FRAME.test(frame));
+  });
+  if (!declarationFrame) {
+    return;
+  }
+  const declarationPath = declarationFrame.replace(/\s*at [^()]*\(([^)]+)\)/, "$1").replace(/^@/, "");
+  return declarationPath;
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/isIterable.mjs
+function isIterable(fn) {
+  if (!fn) {
+    return false;
+  }
+  return typeof fn[Symbol.iterator] == "function";
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/handlers/RequestHandler.mjs
+var RequestHandler = class _RequestHandler {
+  static cache = /* @__PURE__ */ new WeakMap();
+  info;
+  /**
+   * Indicates whether this request handler has been used
+   * (its resolver has successfully executed).
+   */
+  isUsed;
+  resolver;
+  resolverGenerator;
+  resolverGeneratorResult;
+  options;
+  constructor(args) {
+    this.resolver = args.resolver;
+    this.options = args.options;
+    const callFrame = getCallFrame(new Error());
+    this.info = {
+      ...args.info,
+      callFrame
+    };
+    this.isUsed = false;
+  }
+  /**
+   * Parse the intercepted request to extract additional information from it.
+   * Parsed result is then exposed to other methods of this request handler.
+   */
+  async parse(_args) {
+    return {};
+  }
+  /**
+   * Test if this handler matches the given request.
+   *
+   * This method is not used internally but is exposed
+   * as a convenience method for consumers writing custom
+   * handlers.
+   */
+  async test(args) {
+    const parsedResult = await this.parse({
+      request: args.request,
+      resolutionContext: args.resolutionContext
+    });
+    return this.predicate({
+      request: args.request,
+      parsedResult,
+      resolutionContext: args.resolutionContext
+    });
+  }
+  extendResolverArgs(_args) {
+    return {};
+  }
+  // Clone the request instance before it's passed to the handler phases
+  // and the response resolver so we can always read it for logging.
+  // We only clone it once per request to avoid unnecessary overhead.
+  cloneRequestOrGetFromCache(request) {
+    const existingClone = _RequestHandler.cache.get(request);
+    if (typeof existingClone !== "undefined") {
+      return existingClone;
+    }
+    const clonedRequest = request.clone();
+    _RequestHandler.cache.set(request, clonedRequest);
+    return clonedRequest;
+  }
+  /**
+   * Execute this request handler and produce a mocked response
+   * using the given resolver function.
+   */
+  async run(args) {
+    if (this.isUsed && this.options?.once) {
+      return null;
+    }
+    const requestClone = this.cloneRequestOrGetFromCache(args.request);
+    const parsedResult = await this.parse({
+      request: args.request,
+      resolutionContext: args.resolutionContext
+    });
+    const shouldInterceptRequest = this.predicate({
+      request: args.request,
+      parsedResult,
+      resolutionContext: args.resolutionContext
+    });
+    if (!shouldInterceptRequest) {
+      return null;
+    }
+    if (this.isUsed && this.options?.once) {
+      return null;
+    }
+    this.isUsed = true;
+    const executeResolver = this.wrapResolver(this.resolver);
+    const resolverExtras = this.extendResolverArgs({
+      request: args.request,
+      parsedResult
+    });
+    const mockedResponsePromise = executeResolver({
+      ...resolverExtras,
+      requestId: args.requestId,
+      request: args.request
+    }).catch((errorOrResponse) => {
+      if (errorOrResponse instanceof Response) {
+        return errorOrResponse;
+      }
+      throw errorOrResponse;
+    });
+    const mockedResponse = await mockedResponsePromise;
+    const executionResult = this.createExecutionResult({
+      // Pass the cloned request to the result so that logging
+      // and other consumers could read its body once more.
+      request: requestClone,
+      requestId: args.requestId,
+      response: mockedResponse,
+      parsedResult
+    });
+    return executionResult;
+  }
+  wrapResolver(resolver) {
+    return async (info) => {
+      const result = this.resolverGenerator || await resolver(info);
+      if (isIterable(result)) {
+        this.isUsed = false;
+        const { value, done } = result[Symbol.iterator]().next();
+        const nextResponse = await value;
+        if (done) {
+          this.isUsed = true;
+        }
+        if (!nextResponse && done) {
+          invariant(
+            this.resolverGeneratorResult,
+            "Failed to returned a previously stored generator response: the value is not a valid Response."
+          );
+          return this.resolverGeneratorResult.clone();
+        }
+        if (!this.resolverGenerator) {
+          this.resolverGenerator = result;
+        }
+        if (nextResponse) {
+          this.resolverGeneratorResult = nextResponse?.clone();
+        }
+        return nextResponse;
+      }
+      return result;
+    };
+  }
+  createExecutionResult(args) {
+    return {
+      handler: this,
+      request: args.request,
+      requestId: args.requestId,
+      response: args.response,
+      parsedResult: args.parsedResult
+    };
+  }
+};
+
+// node_modules/.pnpm/@open-draft+until@2.1.0/node_modules/@open-draft/until/lib/index.mjs
+var until = async (promise) => {
+  try {
+    const data = await promise().catch((error3) => {
+      throw error3;
+    });
+    return { error: null, data };
+  } catch (error3) {
+    return { error: error3, data: null };
+  }
+};
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/executeHandlers.mjs
+var executeHandlers = async ({
+  request,
+  requestId,
+  handlers,
+  resolutionContext
+}) => {
+  let matchingHandler = null;
+  let result = null;
+  for (const handler of handlers) {
+    result = await handler.run({ request, requestId, resolutionContext });
+    if (result !== null) {
+      matchingHandler = handler;
+    }
+    if (result?.response) {
+      break;
+    }
+  }
+  if (matchingHandler) {
+    return {
+      handler: matchingHandler,
+      parsedResult: result?.parsedResult,
+      response: result?.response
+    };
+  }
+  return null;
+};
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/request/toPublicUrl.mjs
+function toPublicUrl(url) {
+  if (typeof location === "undefined") {
+    return url.toString();
+  }
+  const urlInstance = url instanceof URL ? url : new URL(url);
+  return urlInstance.origin === location.origin ? urlInstance.pathname : urlInstance.origin + urlInstance.pathname;
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/request/onUnhandledRequest.mjs
+async function onUnhandledRequest(request, strategy = "warn") {
+  const url = new URL(request.url);
+  const publicUrl = toPublicUrl(url);
+  const unhandledRequestMessage = `intercepted a request without a matching request handler:
+
+  \u2022 ${request.method} ${publicUrl}
 
 If you still wish to intercept this unhandled request, please create a request handler for it.
-Read more: https://mswjs.io/docs/getting-started/mocks`;function i(o){switch(o){case"error":throw d.error("Error: %s",n),new Error(d.formatMessage('Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.'));case"warn":{d.warn("Warning: %s",n);break}case"bypass":break;default:throw new Error(d.formatMessage('Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',o))}}if(typeof t=="function"){t(e,{warning:i.bind(null,"warn"),error:i.bind(null,"error")});return}r.protocol!=="file:"&&i(t);}var Ke=Object.create,ne=Object.defineProperty,Ve=Object.getOwnPropertyDescriptor,oe=Object.getOwnPropertyNames,Ye=Object.getPrototypeOf,Je=Object.prototype.hasOwnProperty,ze=(e,t)=>function(){return t||(0, e[oe(e)[0]])((t={exports:{}}).exports,t),t.exports},Qe=(e,t,r,s)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of oe(t))!Je.call(e,n)&&n!==r&&ne(e,n,{get:()=>t[n],enumerable:!(s=Ve(t,n))||s.enumerable});return e},Ze=(e,t,r)=>(r=e!=null?Ke(Ye(e)):{},Qe(t||!e||!e.__esModule?ne(r,"default",{value:e,enumerable:!0}):r,e)),et=ze({"node_modules/set-cookie-parser/lib/set-cookie.js"(e,t){var r={decodeValues:!0,map:!1,silent:!1};function s(a){return typeof a=="string"&&!!a.trim()}function n(a,c){var u=a.split(";").filter(s),p=u.shift(),h=i(p),g=h.name,f=h.value;c=c?Object.assign({},r,c):r;try{f=c.decodeValues?decodeURIComponent(f):f;}catch(b){console.error("set-cookie-parser encountered an error while decoding a cookie with value '"+f+"'. Set options.decodeValues to false to disable this feature.",b);}var m={name:g,value:f};return u.forEach(function(b){var _=b.split("="),R=_.shift().trimLeft().toLowerCase(),P=_.join("=");R==="expires"?m.expires=new Date(P):R==="max-age"?m.maxAge=parseInt(P,10):R==="secure"?m.secure=!0:R==="httponly"?m.httpOnly=!0:R==="samesite"?m.sameSite=P:m[R]=P;}),m}function i(a){var c="",u="",p=a.split("=");return p.length>1?(c=p.shift(),u=p.join("=")):u=a,{name:c,value:u}}function o(a,c){if(c=c?Object.assign({},r,c):r,!a)return c.map?{}:[];if(a.headers)if(typeof a.headers.getSetCookie=="function")a=a.headers.getSetCookie();else if(a.headers["set-cookie"])a=a.headers["set-cookie"];else {var u=a.headers[Object.keys(a.headers).find(function(h){return h.toLowerCase()==="set-cookie"})];!u&&a.headers.cookie&&!c.silent&&console.warn("Warning: set-cookie-parser appears to have been called on a request object. It is designed to parse Set-Cookie headers from responses, not Cookie headers from requests. Set the option {silent: true} to suppress this warning."),a=u;}if(Array.isArray(a)||(a=[a]),c=c?Object.assign({},r,c):r,c.map){var p={};return a.filter(s).reduce(function(h,g){var f=n(g,c);return h[f.name]=f,h},p)}else return a.filter(s).map(function(h){return n(h,c)})}function l(a){if(Array.isArray(a))return a;if(typeof a!="string")return [];var c=[],u=0,p,h,g,f,m;function b(){for(;u<a.length&&/\s/.test(a.charAt(u));)u+=1;return u<a.length}function _(){return h=a.charAt(u),h!=="="&&h!==";"&&h!==","}for(;u<a.length;){for(p=u,m=!1;b();)if(h=a.charAt(u),h===","){for(g=u,u+=1,b(),f=u;u<a.length&&_();)u+=1;u<a.length&&a.charAt(u)==="="?(m=!0,u=f,c.push(a.substring(p,g)),p=u):u=g+1;}else u+=1;(!m||u>=a.length)&&c.push(a.substring(p,a.length));}return c}t.exports=o,t.exports.parse=o,t.exports.parseString=n,t.exports.splitCookiesString=l;}}),te=Ze(et()),x="MSW_COOKIE_STORE";function re(){try{if(localStorage==null)return !1;let e=x+"_test";return localStorage.setItem(e,"test"),localStorage.getItem(e),localStorage.removeItem(e),!0}catch{return !1}}function se(e,t){try{return e[t],!0}catch{return !1}}var tt=class{constructor(){this.store=new Map;}add(e,t){if(se(e,"credentials")&&e.credentials==="omit")return;let r=new URL(e.url),s=t.headers.get("set-cookie");if(!s)return;let n=Date.now(),i=(0, te.parse)(s).map(({maxAge:l,...a})=>({...a,expires:l===void 0?a.expires:new Date(n+l*1e3),maxAge:l})),o=this.store.get(r.origin)||new Map;i.forEach(l=>{this.store.set(r.origin,o.set(l.name,l));});}get(e){this.deleteExpiredCookies();let t=new URL(e.url),r=this.store.get(t.origin)||new Map;if(!se(e,"credentials"))return r;switch(e.credentials){case"include":return typeof document>"u"||(0, te.parse)(document.cookie).forEach(n=>{r.set(n.name,n);}),r;case"same-origin":return r;default:return new Map}}getAll(){return this.deleteExpiredCookies(),this.store}deleteAll(e){let t=new URL(e.url);this.store.delete(t.origin);}clear(){this.store.clear();}hydrate(){if(!re())return;let e=localStorage.getItem(x);if(e)try{JSON.parse(e).forEach(([r,s])=>{this.store.set(r,new Map(s.map(([n,{expires:i,...o}])=>[n,i===void 0?o:{...o,expires:new Date(i)}])));});}catch(t){console.warn(`
-[virtual-cookie] Failed to parse a stored cookie from the localStorage (key "${x}").
+Read more: https://mswjs.io/docs/getting-started/mocks`;
+  function applyStrategy(strategy2) {
+    switch (strategy2) {
+      case "error": {
+        devUtils.error("Error: %s", unhandledRequestMessage);
+        throw new Error(
+          devUtils.formatMessage(
+            'Cannot bypass a request when using the "error" strategy for the "onUnhandledRequest" option.'
+          )
+        );
+      }
+      case "warn": {
+        devUtils.warn("Warning: %s", unhandledRequestMessage);
+        break;
+      }
+      case "bypass":
+        break;
+      default:
+        throw new Error(
+          devUtils.formatMessage(
+            'Failed to react to an unhandled request: unknown strategy "%s". Please provide one of the supported strategies ("bypass", "warn", "error") or a custom callback function as the value of the "onUnhandledRequest" option.',
+            strategy2
+          )
+        );
+    }
+  }
+  if (typeof strategy === "function") {
+    strategy(request, {
+      warning: applyStrategy.bind(null, "warn"),
+      error: applyStrategy.bind(null, "error")
+    });
+    return;
+  }
+  if (url.protocol === "file:") {
+    return;
+  }
+  applyStrategy(strategy);
+}
+
+// node_modules/.pnpm/@mswjs+cookies@1.1.0/node_modules/@mswjs/cookies/lib/index.mjs
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __commonJS = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var require_set_cookie = __commonJS({
+  "node_modules/set-cookie-parser/lib/set-cookie.js"(exports, module) {
+    var defaultParseOptions = {
+      decodeValues: true,
+      map: false,
+      silent: false
+    };
+    function isNonEmptyString(str) {
+      return typeof str === "string" && !!str.trim();
+    }
+    function parseString(setCookieValue, options) {
+      var parts = setCookieValue.split(";").filter(isNonEmptyString);
+      var nameValuePairStr = parts.shift();
+      var parsed = parseNameValuePair(nameValuePairStr);
+      var name = parsed.name;
+      var value = parsed.value;
+      options = options ? Object.assign({}, defaultParseOptions, options) : defaultParseOptions;
+      try {
+        value = options.decodeValues ? decodeURIComponent(value) : value;
+      } catch (e) {
+        console.error(
+          "set-cookie-parser encountered an error while decoding a cookie with value '" + value + "'. Set options.decodeValues to false to disable this feature.",
+          e
+        );
+      }
+      var cookie = {
+        name,
+        value
+      };
+      parts.forEach(function(part) {
+        var sides = part.split("=");
+        var key = sides.shift().trimLeft().toLowerCase();
+        var value2 = sides.join("=");
+        if (key === "expires") {
+          cookie.expires = new Date(value2);
+        } else if (key === "max-age") {
+          cookie.maxAge = parseInt(value2, 10);
+        } else if (key === "secure") {
+          cookie.secure = true;
+        } else if (key === "httponly") {
+          cookie.httpOnly = true;
+        } else if (key === "samesite") {
+          cookie.sameSite = value2;
+        } else {
+          cookie[key] = value2;
+        }
+      });
+      return cookie;
+    }
+    function parseNameValuePair(nameValuePairStr) {
+      var name = "";
+      var value = "";
+      var nameValueArr = nameValuePairStr.split("=");
+      if (nameValueArr.length > 1) {
+        name = nameValueArr.shift();
+        value = nameValueArr.join("=");
+      } else {
+        value = nameValuePairStr;
+      }
+      return { name, value };
+    }
+    function parse(input, options) {
+      options = options ? Object.assign({}, defaultParseOptions, options) : defaultParseOptions;
+      if (!input) {
+        if (!options.map) {
+          return [];
+        } else {
+          return {};
+        }
+      }
+      if (input.headers) {
+        if (typeof input.headers.getSetCookie === "function") {
+          input = input.headers.getSetCookie();
+        } else if (input.headers["set-cookie"]) {
+          input = input.headers["set-cookie"];
+        } else {
+          var sch = input.headers[Object.keys(input.headers).find(function(key) {
+            return key.toLowerCase() === "set-cookie";
+          })];
+          if (!sch && input.headers.cookie && !options.silent) {
+            console.warn(
+              "Warning: set-cookie-parser appears to have been called on a request object. It is designed to parse Set-Cookie headers from responses, not Cookie headers from requests. Set the option {silent: true} to suppress this warning."
+            );
+          }
+          input = sch;
+        }
+      }
+      if (!Array.isArray(input)) {
+        input = [input];
+      }
+      options = options ? Object.assign({}, defaultParseOptions, options) : defaultParseOptions;
+      if (!options.map) {
+        return input.filter(isNonEmptyString).map(function(str) {
+          return parseString(str, options);
+        });
+      } else {
+        var cookies = {};
+        return input.filter(isNonEmptyString).reduce(function(cookies2, str) {
+          var cookie = parseString(str, options);
+          cookies2[cookie.name] = cookie;
+          return cookies2;
+        }, cookies);
+      }
+    }
+    function splitCookiesString(cookiesString) {
+      if (Array.isArray(cookiesString)) {
+        return cookiesString;
+      }
+      if (typeof cookiesString !== "string") {
+        return [];
+      }
+      var cookiesStrings = [];
+      var pos = 0;
+      var start;
+      var ch;
+      var lastComma;
+      var nextStart;
+      var cookiesSeparatorFound;
+      function skipWhitespace() {
+        while (pos < cookiesString.length && /\s/.test(cookiesString.charAt(pos))) {
+          pos += 1;
+        }
+        return pos < cookiesString.length;
+      }
+      function notSpecialChar() {
+        ch = cookiesString.charAt(pos);
+        return ch !== "=" && ch !== ";" && ch !== ",";
+      }
+      while (pos < cookiesString.length) {
+        start = pos;
+        cookiesSeparatorFound = false;
+        while (skipWhitespace()) {
+          ch = cookiesString.charAt(pos);
+          if (ch === ",") {
+            lastComma = pos;
+            pos += 1;
+            skipWhitespace();
+            nextStart = pos;
+            while (pos < cookiesString.length && notSpecialChar()) {
+              pos += 1;
+            }
+            if (pos < cookiesString.length && cookiesString.charAt(pos) === "=") {
+              cookiesSeparatorFound = true;
+              pos = nextStart;
+              cookiesStrings.push(cookiesString.substring(start, lastComma));
+              start = pos;
+            } else {
+              pos = lastComma + 1;
+            }
+          } else {
+            pos += 1;
+          }
+        }
+        if (!cookiesSeparatorFound || pos >= cookiesString.length) {
+          cookiesStrings.push(cookiesString.substring(start, cookiesString.length));
+        }
+      }
+      return cookiesStrings;
+    }
+    module.exports = parse;
+    module.exports.parse = parse;
+    module.exports.parseString = parseString;
+    module.exports.splitCookiesString = splitCookiesString;
+  }
+});
+var import_set_cookie_parser = __toESM(require_set_cookie());
+var PERSISTENCY_KEY = "MSW_COOKIE_STORE";
+function supportsLocalStorage() {
+  try {
+    if (localStorage == null) {
+      return false;
+    }
+    const testKey = PERSISTENCY_KEY + "_test";
+    localStorage.setItem(testKey, "test");
+    localStorage.getItem(testKey);
+    localStorage.removeItem(testKey);
+    return true;
+  } catch (error3) {
+    return false;
+  }
+}
+function isPropertyAccessible(object, method) {
+  try {
+    object[method];
+    return true;
+  } catch {
+    return false;
+  }
+}
+var CookieStore = class {
+  constructor() {
+    this.store = /* @__PURE__ */ new Map();
+  }
+  add(request, response) {
+    if (isPropertyAccessible(request, "credentials") && request.credentials === "omit") {
+      return;
+    }
+    const requestUrl = new URL(request.url);
+    const responseCookies = response.headers.get("set-cookie");
+    if (!responseCookies) {
+      return;
+    }
+    const now = Date.now();
+    const parsedResponseCookies = (0, import_set_cookie_parser.parse)(responseCookies).map(
+      ({ maxAge, ...cookie }) => ({
+        ...cookie,
+        expires: maxAge === void 0 ? cookie.expires : new Date(now + maxAge * 1e3),
+        maxAge
+      })
+    );
+    const prevCookies = this.store.get(requestUrl.origin) || /* @__PURE__ */ new Map();
+    parsedResponseCookies.forEach((cookie) => {
+      this.store.set(requestUrl.origin, prevCookies.set(cookie.name, cookie));
+    });
+  }
+  get(request) {
+    this.deleteExpiredCookies();
+    const requestUrl = new URL(request.url);
+    const originCookies = this.store.get(requestUrl.origin) || /* @__PURE__ */ new Map();
+    if (!isPropertyAccessible(request, "credentials")) {
+      return originCookies;
+    }
+    switch (request.credentials) {
+      case "include": {
+        if (typeof document === "undefined") {
+          return originCookies;
+        }
+        const documentCookies = (0, import_set_cookie_parser.parse)(document.cookie);
+        documentCookies.forEach((cookie) => {
+          originCookies.set(cookie.name, cookie);
+        });
+        return originCookies;
+      }
+      case "same-origin": {
+        return originCookies;
+      }
+      default:
+        return /* @__PURE__ */ new Map();
+    }
+  }
+  getAll() {
+    this.deleteExpiredCookies();
+    return this.store;
+  }
+  deleteAll(request) {
+    const requestUrl = new URL(request.url);
+    this.store.delete(requestUrl.origin);
+  }
+  clear() {
+    this.store.clear();
+  }
+  hydrate() {
+    if (!supportsLocalStorage()) {
+      return;
+    }
+    const persistedCookies = localStorage.getItem(PERSISTENCY_KEY);
+    if (!persistedCookies) {
+      return;
+    }
+    try {
+      const parsedCookies = JSON.parse(persistedCookies);
+      parsedCookies.forEach(([origin, cookies]) => {
+        this.store.set(
+          origin,
+          new Map(
+            cookies.map(([token, { expires, ...cookie }]) => [
+              token,
+              expires === void 0 ? cookie : { ...cookie, expires: new Date(expires) }
+            ])
+          )
+        );
+      });
+    } catch (error3) {
+      console.warn(`
+[virtual-cookie] Failed to parse a stored cookie from the localStorage (key "${PERSISTENCY_KEY}").
 
 Stored value:
-${localStorage.getItem(x)}
+${localStorage.getItem(PERSISTENCY_KEY)}
 
 Thrown exception:
-${t}
+${error3}
 
-Invalid value has been removed from localStorage to prevent subsequent failed parsing attempts.`),localStorage.removeItem(x);}}persist(){if(!re())return;let e=Array.from(this.store.entries()).map(([t,r])=>[t,Array.from(r.entries())]);localStorage.setItem(x,JSON.stringify(e));}deleteExpiredCookies(){let e=Date.now();this.store.forEach((t,r)=>{t.forEach(({expires:s,name:n})=>{s!==void 0&&s.getTime()<=e&&t.delete(n);}),t.size===0&&this.store.delete(r);});}},H=new tt;function ie(e,t){H.add({...e,url:e.url.toString()},t),H.persist();}async function T(e,t,r,s,n,i){if(n.emit("request:start",{request:e,requestId:t}),e.headers.get("x-msw-intention")==="bypass"){n.emit("request:end",{request:e,requestId:t}),i?.onPassthroughResponse?.(e);return}let o=await z(()=>Q({request:e,requestId:t,handlers:r,resolutionContext:i?.resolutionContext}));if(o.error)throw n.emit("unhandledException",{error:o.error,request:e,requestId:t}),o.error;if(!o.data){await ee(e,s.onUnhandledRequest),n.emit("request:unhandled",{request:e,requestId:t}),n.emit("request:end",{request:e,requestId:t}),i?.onPassthroughResponse?.(e);return}let{response:l}=o.data;if(!l){n.emit("request:end",{request:e,requestId:t}),i?.onPassthroughResponse?.(e);return}if(l.status===302&&l.headers.get("x-msw-intention")==="passthrough"){n.emit("request:end",{request:e,requestId:t}),i?.onPassthroughResponse?.(e);return}ie(e,l),n.emit("request:match",{request:e,requestId:t});let a=o.data,c=i?.transformResponse?.(l)||l;return i?.onMockedResponse?.(c,a),n.emit("request:end",{request:e,requestId:t}),c}function ae(e){return {status:e.status,statusText:e.statusText,headers:Object.fromEntries(e.headers.entries())}}function j(e){return e!=null&&typeof e=="object"&&!Array.isArray(e)}function D(e,t){return Object.entries(t).reduce((r,[s,n])=>{let i=r[s];return Array.isArray(i)&&Array.isArray(n)?(r[s]=i.concat(n),r):j(i)&&j(n)?(r[s]=D(i,n),r):(r[s]=n,r)},Object.assign({},e))}var rt=class extends Error{constructor(e,t,r){super(`Possible EventEmitter memory leak detected. ${r} ${t.toString()} listeners added. Use emitter.setMaxListeners() to increase limit`),this.emitter=e,this.type=t,this.count=r,this.name="MaxListenersExceededWarning";}},le=class{static listenerCount(e,t){return e.listenerCount(t)}constructor(){this.events=new Map,this.maxListeners=le.defaultMaxListeners,this.hasWarnedAboutPotentialMemoryLeak=!1;}_emitInternalEvent(e,t,r){this.emit(e,t,r);}_getListeners(e){return Array.prototype.concat.apply([],this.events.get(e))||[]}_removeListener(e,t){let r=e.indexOf(t);return r>-1&&e.splice(r,1),[]}_wrapOnceListener(e,t){let r=(...s)=>(this.removeListener(e,r),t.apply(this,s));return Object.defineProperty(r,"name",{value:t.name}),r}setMaxListeners(e){return this.maxListeners=e,this}getMaxListeners(){return this.maxListeners}eventNames(){return Array.from(this.events.keys())}emit(e,...t){let r=this._getListeners(e);return r.forEach(s=>{s.apply(this,t);}),r.length>0}addListener(e,t){this._emitInternalEvent("newListener",e,t);let r=this._getListeners(e).concat(t);if(this.events.set(e,r),this.maxListeners>0&&this.listenerCount(e)>this.maxListeners&&!this.hasWarnedAboutPotentialMemoryLeak){this.hasWarnedAboutPotentialMemoryLeak=!0;let s=new rt(this,e,this.listenerCount(e));console.warn(s);}return this}on(e,t){return this.addListener(e,t)}once(e,t){return this.addListener(e,this._wrapOnceListener(e,t))}prependListener(e,t){let r=this._getListeners(e);if(r.length>0){let s=[t].concat(r);this.events.set(e,s);}else this.events.set(e,r.concat(t));return this}prependOnceListener(e,t){return this.prependListener(e,this._wrapOnceListener(e,t))}removeListener(e,t){let r=this._getListeners(e);return r.length>0&&(this._removeListener(r,t),this.events.set(e,r),this._emitInternalEvent("removeListener",e,t)),this}off(e,t){return this.removeListener(e,t)}removeAllListeners(e){return e?this.events.delete(e):this.events.clear(),this}listeners(e){return Array.from(this._getListeners(e))}listenerCount(e){return this._getListeners(e).length}rawListeners(e){return this.listeners(e)}},C=le;C.defaultMaxListeners=10;function ce(e,t){let r=e.emit;if(r._isPiped)return;let s=function(i,...o){return t.emit(i,...o),r.call(this,i,...o)};s._isPiped=!0,e.emit=s;}function ue(e){let t=[...e];return Object.freeze(t),t}var I=class{subscriptions=[];async dispose(){await Promise.all(this.subscriptions.map(t=>t()));}};var B=class{constructor(t){this.initialHandlers=t,this.handlers=[...t];}handlers;prepend(t){this.handlers.unshift(...t);}reset(t){this.handlers=t.length>0?[...t]:[...this.initialHandlers];}currentHandlers(){return this.handlers}},A=class extends I{handlersController;emitter;publicEmitter;events;constructor(...t){super(),k(this.validateHandlers(t),d.formatMessage("Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?")),this.handlersController=new B(t),this.emitter=new C,this.publicEmitter=new C,ce(this.emitter,this.publicEmitter),this.events=this.createLifeCycleEvents(),this.subscriptions.push(()=>{this.emitter.removeAllListeners(),this.publicEmitter.removeAllListeners();});}validateHandlers(t){return t.every(r=>!Array.isArray(r))}use(...t){k(this.validateHandlers(t),d.formatMessage('Failed to call "use()" with the given request handlers: invalid input. Did you forget to spread the array of request handlers?')),this.handlersController.prepend(t);}restoreHandlers(){this.handlersController.currentHandlers().forEach(t=>{t.isUsed=!1;});}resetHandlers(...t){this.handlersController.reset(t);}listHandlers(){return ue(this.handlersController.currentHandlers())}createLifeCycleEvents(){return {on:(...t)=>this.publicEmitter.on(...t),removeListener:(...t)=>this.publicEmitter.removeListener(...t),removeAllListeners:(...t)=>this.publicEmitter.removeAllListeners(...t)}}};var st=/(%?)(%([sdijo]))/g;function nt(e,t){switch(t){case"s":return e;case"d":case"i":return Number(e);case"j":return JSON.stringify(e);case"o":{if(typeof e=="string")return e;let r=JSON.stringify(e);return r==="{}"||r==="[]"||/^\[object .+?\]$/.test(r)?e:r}}}function S(e,...t){if(t.length===0)return e;let r=0,s=e.replace(st,(n,i,o,l)=>{let a=t[r],c=nt(a,l);return i?n:(r++,c)});return r<t.length&&(s+=` ${t.slice(r).join(" ")}`),s=s.replace(/%{2,2}/g,"%"),s}var ot=2;function it(e){if(!e.stack)return;let t=e.stack.split(`
-`);t.splice(1,ot),e.stack=t.join(`
-`);}var at=class extends Error{constructor(e,...t){super(e),this.message=e,this.name="Invariant Violation",this.message=S(e,...t),it(this);}},w=(e,t,...r)=>{if(!e)throw new at(t,...r)};w.as=(e,t,r,...s)=>{if(!t){let n=s.length===0?r:S(r,s),i;try{i=Reflect.construct(e,[n]);}catch{i=e(n);}throw i}};function X(){if(typeof navigator<"u"&&navigator.product==="ReactNative")return !0;if(typeof process<"u"){let e=process.type;return e==="renderer"||e==="worker"?!1:!!(process.versions&&process.versions.node)}return !1}var K=async e=>{try{return {error:null,data:await e().catch(r=>{throw r})}}catch(t){return {error:t,data:null}}};function lt(e){return new URL(e,location.href).href}function F(e,t,r){return [e.active,e.installing,e.waiting].filter(o=>o!=null).find(o=>r(o.scriptURL,t))||null}var ct=async(e,t={},r)=>{let s=lt(e),n=await navigator.serviceWorker.getRegistrations().then(l=>l.filter(a=>F(a,s,r)));!navigator.serviceWorker.controller&&n.length>0&&location.reload();let[i]=n;if(i)return i.update().then(()=>[F(i,s,r),i]);let o=await K(async()=>{let l=await navigator.serviceWorker.register(e,t);return [F(l,s,r),l]});if(o.error){if(o.error.message.includes("(404)")){let a=new URL(t?.scope||"/",location.href);throw new Error(d.formatMessage(`Failed to register a Service Worker for scope ('${a.href}') with script ('${s}'): Service Worker script does not exist at the given path.
+Invalid value has been removed from localStorage to prevent subsequent failed parsing attempts.`);
+      localStorage.removeItem(PERSISTENCY_KEY);
+    }
+  }
+  persist() {
+    if (!supportsLocalStorage()) {
+      return;
+    }
+    const serializedCookies = Array.from(this.store.entries()).map(
+      ([origin, cookies]) => {
+        return [origin, Array.from(cookies.entries())];
+      }
+    );
+    localStorage.setItem(PERSISTENCY_KEY, JSON.stringify(serializedCookies));
+  }
+  deleteExpiredCookies() {
+    const now = Date.now();
+    this.store.forEach((originCookies, origin) => {
+      originCookies.forEach(({ expires, name }) => {
+        if (expires !== void 0 && expires.getTime() <= now) {
+          originCookies.delete(name);
+        }
+      });
+      if (originCookies.size === 0) {
+        this.store.delete(origin);
+      }
+    });
+  }
+};
+var store = new CookieStore();
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/request/readResponseCookies.mjs
+function readResponseCookies(request, response) {
+  store.add({ ...request, url: request.url.toString() }, response);
+  store.persist();
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/handleRequest.mjs
+async function handleRequest(request, requestId, handlers, options, emitter, handleRequestOptions) {
+  emitter.emit("request:start", { request, requestId });
+  if (request.headers.get("x-msw-intention") === "bypass") {
+    emitter.emit("request:end", { request, requestId });
+    handleRequestOptions?.onPassthroughResponse?.(request);
+    return;
+  }
+  const lookupResult = await until(() => {
+    return executeHandlers({
+      request,
+      requestId,
+      handlers,
+      resolutionContext: handleRequestOptions?.resolutionContext
+    });
+  });
+  if (lookupResult.error) {
+    emitter.emit("unhandledException", {
+      error: lookupResult.error,
+      request,
+      requestId
+    });
+    throw lookupResult.error;
+  }
+  if (!lookupResult.data) {
+    await onUnhandledRequest(request, options.onUnhandledRequest);
+    emitter.emit("request:unhandled", { request, requestId });
+    emitter.emit("request:end", { request, requestId });
+    handleRequestOptions?.onPassthroughResponse?.(request);
+    return;
+  }
+  const { response } = lookupResult.data;
+  if (!response) {
+    emitter.emit("request:end", { request, requestId });
+    handleRequestOptions?.onPassthroughResponse?.(request);
+    return;
+  }
+  if (response.status === 302 && response.headers.get("x-msw-intention") === "passthrough") {
+    emitter.emit("request:end", { request, requestId });
+    handleRequestOptions?.onPassthroughResponse?.(request);
+    return;
+  }
+  readResponseCookies(request, response);
+  emitter.emit("request:match", { request, requestId });
+  const requiredLookupResult = lookupResult.data;
+  const transformedResponse = handleRequestOptions?.transformResponse?.(response) || response;
+  handleRequestOptions?.onMockedResponse?.(
+    transformedResponse,
+    requiredLookupResult
+  );
+  emitter.emit("request:end", { request, requestId });
+  return transformedResponse;
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/toResponseInit.mjs
+function toResponseInit(response) {
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    headers: Object.fromEntries(response.headers.entries())
+  };
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/isObject.mjs
+function isObject(value) {
+  return value != null && typeof value === "object" && !Array.isArray(value);
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/mergeRight.mjs
+function mergeRight(left, right) {
+  return Object.entries(right).reduce(
+    (result, [key, rightValue]) => {
+      const leftValue = result[key];
+      if (Array.isArray(leftValue) && Array.isArray(rightValue)) {
+        result[key] = leftValue.concat(rightValue);
+        return result;
+      }
+      if (isObject(leftValue) && isObject(rightValue)) {
+        result[key] = mergeRight(leftValue, rightValue);
+        return result;
+      }
+      result[key] = rightValue;
+      return result;
+    },
+    Object.assign({}, left)
+  );
+}
+
+// node_modules/.pnpm/strict-event-emitter@0.5.1/node_modules/strict-event-emitter/lib/index.mjs
+var MemoryLeakError = class extends Error {
+  constructor(emitter, type, count) {
+    super(
+      `Possible EventEmitter memory leak detected. ${count} ${type.toString()} listeners added. Use emitter.setMaxListeners() to increase limit`
+    );
+    this.emitter = emitter;
+    this.type = type;
+    this.count = count;
+    this.name = "MaxListenersExceededWarning";
+  }
+};
+var _Emitter = class {
+  static listenerCount(emitter, eventName) {
+    return emitter.listenerCount(eventName);
+  }
+  constructor() {
+    this.events = /* @__PURE__ */ new Map();
+    this.maxListeners = _Emitter.defaultMaxListeners;
+    this.hasWarnedAboutPotentialMemoryLeak = false;
+  }
+  _emitInternalEvent(internalEventName, eventName, listener) {
+    this.emit(
+      internalEventName,
+      ...[eventName, listener]
+    );
+  }
+  _getListeners(eventName) {
+    return Array.prototype.concat.apply([], this.events.get(eventName)) || [];
+  }
+  _removeListener(listeners, listener) {
+    const index = listeners.indexOf(listener);
+    if (index > -1) {
+      listeners.splice(index, 1);
+    }
+    return [];
+  }
+  _wrapOnceListener(eventName, listener) {
+    const onceListener = (...data) => {
+      this.removeListener(eventName, onceListener);
+      return listener.apply(this, data);
+    };
+    Object.defineProperty(onceListener, "name", { value: listener.name });
+    return onceListener;
+  }
+  setMaxListeners(maxListeners) {
+    this.maxListeners = maxListeners;
+    return this;
+  }
+  /**
+   * Returns the current max listener value for the `Emitter` which is
+   * either set by `emitter.setMaxListeners(n)` or defaults to
+   * `Emitter.defaultMaxListeners`.
+   */
+  getMaxListeners() {
+    return this.maxListeners;
+  }
+  /**
+   * Returns an array listing the events for which the emitter has registered listeners.
+   * The values in the array will be strings or Symbols.
+   */
+  eventNames() {
+    return Array.from(this.events.keys());
+  }
+  /**
+   * Synchronously calls each of the listeners registered for the event named `eventName`,
+   * in the order they were registered, passing the supplied arguments to each.
+   * Returns `true` if the event has listeners, `false` otherwise.
+   *
+   * @example
+   * const emitter = new Emitter<{ hello: [string] }>()
+   * emitter.emit('hello', 'John')
+   */
+  emit(eventName, ...data) {
+    const listeners = this._getListeners(eventName);
+    listeners.forEach((listener) => {
+      listener.apply(this, data);
+    });
+    return listeners.length > 0;
+  }
+  addListener(eventName, listener) {
+    this._emitInternalEvent("newListener", eventName, listener);
+    const nextListeners = this._getListeners(eventName).concat(listener);
+    this.events.set(eventName, nextListeners);
+    if (this.maxListeners > 0 && this.listenerCount(eventName) > this.maxListeners && !this.hasWarnedAboutPotentialMemoryLeak) {
+      this.hasWarnedAboutPotentialMemoryLeak = true;
+      const memoryLeakWarning = new MemoryLeakError(
+        this,
+        eventName,
+        this.listenerCount(eventName)
+      );
+      console.warn(memoryLeakWarning);
+    }
+    return this;
+  }
+  on(eventName, listener) {
+    return this.addListener(eventName, listener);
+  }
+  once(eventName, listener) {
+    return this.addListener(
+      eventName,
+      this._wrapOnceListener(eventName, listener)
+    );
+  }
+  prependListener(eventName, listener) {
+    const listeners = this._getListeners(eventName);
+    if (listeners.length > 0) {
+      const nextListeners = [listener].concat(listeners);
+      this.events.set(eventName, nextListeners);
+    } else {
+      this.events.set(eventName, listeners.concat(listener));
+    }
+    return this;
+  }
+  prependOnceListener(eventName, listener) {
+    return this.prependListener(
+      eventName,
+      this._wrapOnceListener(eventName, listener)
+    );
+  }
+  removeListener(eventName, listener) {
+    const listeners = this._getListeners(eventName);
+    if (listeners.length > 0) {
+      this._removeListener(listeners, listener);
+      this.events.set(eventName, listeners);
+      this._emitInternalEvent("removeListener", eventName, listener);
+    }
+    return this;
+  }
+  /**
+   * Alias for `emitter.removeListener()`.
+   *
+   * @example
+   * emitter.off('hello', listener)
+   */
+  off(eventName, listener) {
+    return this.removeListener(eventName, listener);
+  }
+  removeAllListeners(eventName) {
+    if (eventName) {
+      this.events.delete(eventName);
+    } else {
+      this.events.clear();
+    }
+    return this;
+  }
+  /**
+   * Returns a copy of the array of listeners for the event named `eventName`.
+   */
+  listeners(eventName) {
+    return Array.from(this._getListeners(eventName));
+  }
+  /**
+   * Returns the number of listeners listening to the event named `eventName`.
+   */
+  listenerCount(eventName) {
+    return this._getListeners(eventName).length;
+  }
+  rawListeners(eventName) {
+    return this.listeners(eventName);
+  }
+};
+var Emitter = _Emitter;
+Emitter.defaultMaxListeners = 10;
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/pipeEvents.mjs
+function pipeEvents(source, destination) {
+  const rawEmit = source.emit;
+  if (rawEmit._isPiped) {
+    return;
+  }
+  const sourceEmit = function sourceEmit2(event, ...data) {
+    destination.emit(event, ...data);
+    return rawEmit.call(this, event, ...data);
+  };
+  sourceEmit._isPiped = true;
+  source.emit = sourceEmit;
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/toReadonlyArray.mjs
+function toReadonlyArray(source) {
+  const clone = [...source];
+  Object.freeze(clone);
+  return clone;
+}
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/utils/internal/Disposable.mjs
+var Disposable = class {
+  subscriptions = [];
+  async dispose() {
+    await Promise.all(this.subscriptions.map((subscription) => subscription()));
+  }
+};
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/core/SetupApi.mjs
+var InMemoryHandlersController = class {
+  constructor(initialHandlers2) {
+    this.initialHandlers = initialHandlers2;
+    this.handlers = [...initialHandlers2];
+  }
+  handlers;
+  prepend(runtimeHandles) {
+    this.handlers.unshift(...runtimeHandles);
+  }
+  reset(nextHandlers) {
+    this.handlers = nextHandlers.length > 0 ? [...nextHandlers] : [...this.initialHandlers];
+  }
+  currentHandlers() {
+    return this.handlers;
+  }
+};
+var SetupApi = class extends Disposable {
+  handlersController;
+  emitter;
+  publicEmitter;
+  events;
+  constructor(...initialHandlers2) {
+    super();
+    invariant(
+      this.validateHandlers(initialHandlers2),
+      devUtils.formatMessage(
+        `Failed to apply given request handlers: invalid input. Did you forget to spread the request handlers Array?`
+      )
+    );
+    this.handlersController = new InMemoryHandlersController(initialHandlers2);
+    this.emitter = new Emitter();
+    this.publicEmitter = new Emitter();
+    pipeEvents(this.emitter, this.publicEmitter);
+    this.events = this.createLifeCycleEvents();
+    this.subscriptions.push(() => {
+      this.emitter.removeAllListeners();
+      this.publicEmitter.removeAllListeners();
+    });
+  }
+  validateHandlers(handlers) {
+    return handlers.every((handler) => !Array.isArray(handler));
+  }
+  use(...runtimeHandlers) {
+    invariant(
+      this.validateHandlers(runtimeHandlers),
+      devUtils.formatMessage(
+        `Failed to call "use()" with the given request handlers: invalid input. Did you forget to spread the array of request handlers?`
+      )
+    );
+    this.handlersController.prepend(runtimeHandlers);
+  }
+  restoreHandlers() {
+    this.handlersController.currentHandlers().forEach((handler) => {
+      handler.isUsed = false;
+    });
+  }
+  resetHandlers(...nextHandlers) {
+    this.handlersController.reset(nextHandlers);
+  }
+  listHandlers() {
+    return toReadonlyArray(this.handlersController.currentHandlers());
+  }
+  createLifeCycleEvents() {
+    return {
+      on: (...args) => {
+        return this.publicEmitter.on(...args);
+      },
+      removeListener: (...args) => {
+        return this.publicEmitter.removeListener(...args);
+      },
+      removeAllListeners: (...args) => {
+        return this.publicEmitter.removeAllListeners(...args);
+      }
+    };
+  }
+};
+
+// node_modules/.pnpm/msw@2.2.10_typescript@5.4.3/node_modules/msw/lib/browser/index.mjs
+var POSITIONALS_EXP2 = /(%?)(%([sdijo]))/g;
+function serializePositional2(positional, flag) {
+  switch (flag) {
+    case "s":
+      return positional;
+    case "d":
+    case "i":
+      return Number(positional);
+    case "j":
+      return JSON.stringify(positional);
+    case "o": {
+      if (typeof positional === "string") {
+        return positional;
+      }
+      const json = JSON.stringify(positional);
+      if (json === "{}" || json === "[]" || /^\[object .+?\]$/.test(json)) {
+        return positional;
+      }
+      return json;
+    }
+  }
+}
+function format2(message, ...positionals) {
+  if (positionals.length === 0) {
+    return message;
+  }
+  let positionalIndex = 0;
+  let formattedMessage = message.replace(
+    POSITIONALS_EXP2,
+    (match, isEscaped, _, flag) => {
+      const positional = positionals[positionalIndex];
+      const value = serializePositional2(positional, flag);
+      if (!isEscaped) {
+        positionalIndex++;
+        return value;
+      }
+      return match;
+    }
+  );
+  if (positionalIndex < positionals.length) {
+    formattedMessage += ` ${positionals.slice(positionalIndex).join(" ")}`;
+  }
+  formattedMessage = formattedMessage.replace(/%{2,2}/g, "%");
+  return formattedMessage;
+}
+var STACK_FRAMES_TO_IGNORE2 = 2;
+function cleanErrorStack2(error22) {
+  if (!error22.stack) {
+    return;
+  }
+  const nextStack = error22.stack.split("\n");
+  nextStack.splice(1, STACK_FRAMES_TO_IGNORE2);
+  error22.stack = nextStack.join("\n");
+}
+var InvariantError2 = class extends Error {
+  constructor(message, ...positionals) {
+    super(message);
+    this.message = message;
+    this.name = "Invariant Violation";
+    this.message = format2(message, ...positionals);
+    cleanErrorStack2(this);
+  }
+};
+var invariant2 = (predicate, message, ...positionals) => {
+  if (!predicate) {
+    throw new InvariantError2(message, ...positionals);
+  }
+};
+invariant2.as = (ErrorConstructor, predicate, message, ...positionals) => {
+  if (!predicate) {
+    const formatMessage2 = positionals.length === 0 ? message : format2(message, positionals);
+    let error22;
+    try {
+      error22 = Reflect.construct(ErrorConstructor, [formatMessage2]);
+    } catch (err) {
+      error22 = ErrorConstructor(formatMessage2);
+    }
+    throw error22;
+  }
+};
+function isNodeProcess() {
+  if (typeof navigator !== "undefined" && navigator.product === "ReactNative") {
+    return true;
+  }
+  if (typeof process !== "undefined") {
+    const type = process.type;
+    if (type === "renderer" || type === "worker") {
+      return false;
+    }
+    return !!(process.versions && process.versions.node);
+  }
+  return false;
+}
+var until2 = async (promise) => {
+  try {
+    const data = await promise().catch((error22) => {
+      throw error22;
+    });
+    return { error: null, data };
+  } catch (error22) {
+    return { error: error22, data: null };
+  }
+};
+function getAbsoluteWorkerUrl(workerUrl) {
+  return new URL(workerUrl, location.href).href;
+}
+function getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker) {
+  const allStates = [
+    registration.active,
+    registration.installing,
+    registration.waiting
+  ];
+  const relevantStates = allStates.filter((state) => {
+    return state != null;
+  });
+  const worker2 = relevantStates.find((worker22) => {
+    return findWorker(worker22.scriptURL, absoluteWorkerUrl);
+  });
+  return worker2 || null;
+}
+var getWorkerInstance = async (url, options = {}, findWorker) => {
+  const absoluteWorkerUrl = getAbsoluteWorkerUrl(url);
+  const mockRegistrations = await navigator.serviceWorker.getRegistrations().then(
+    (registrations) => registrations.filter(
+      (registration) => getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker)
+    )
+  );
+  if (!navigator.serviceWorker.controller && mockRegistrations.length > 0) {
+    location.reload();
+  }
+  const [existingRegistration] = mockRegistrations;
+  if (existingRegistration) {
+    return existingRegistration.update().then(() => {
+      return [
+        getWorkerByRegistration(
+          existingRegistration,
+          absoluteWorkerUrl,
+          findWorker
+        ),
+        existingRegistration
+      ];
+    });
+  }
+  const registrationResult = await until2(
+    async () => {
+      const registration = await navigator.serviceWorker.register(url, options);
+      return [
+        // Compare existing worker registration by its worker URL,
+        // to prevent irrelevant workers to resolve here (such as Codesandbox worker).
+        getWorkerByRegistration(registration, absoluteWorkerUrl, findWorker),
+        registration
+      ];
+    }
+  );
+  if (registrationResult.error) {
+    const isWorkerMissing = registrationResult.error.message.includes("(404)");
+    if (isWorkerMissing) {
+      const scopeUrl = new URL(options?.scope || "/", location.href);
+      throw new Error(
+        devUtils.formatMessage(`Failed to register a Service Worker for scope ('${scopeUrl.href}') with script ('${absoluteWorkerUrl}'): Service Worker script does not exist at the given path.
 
 Did you forget to run "npx msw init <PUBLIC_DIR>"?
 
-Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/init`))}throw new Error(d.formatMessage(`Failed to register the Service Worker:
-
-%s`,o.error.message))}return o.data};function ye(e={}){if(e.quiet)return;let t=e.message||"Mocking enabled.";console.groupCollapsed(`%c${d.formatMessage(t)}`,"color:orangered;font-weight:bold;"),console.log("%cDocumentation: %chttps://mswjs.io/docs","font-weight:bold","font-weight:normal"),console.log("Found an issue? https://github.com/mswjs/msw/issues"),e.workerUrl&&console.log("Worker script URL:",e.workerUrl),e.workerScope&&console.log("Worker scope:",e.workerScope),console.groupEnd();}async function ut(e,t){if(e.workerChannel.send("MOCK_ACTIVATE"),await e.events.once("MOCKING_ENABLED"),e.isMockingEnabled){d.warn('Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.');return}e.isMockingEnabled=!0,ye({quiet:t.quiet,workerScope:e.registration?.scope,workerUrl:e.worker?.scriptURL});}var ht=class{constructor(e){this.port=e;}postMessage(e,...t){let[r,s]=t;this.port.postMessage({type:e,data:r},{transfer:s});}};function dt(e){if(!["HEAD","GET"].includes(e.method))return e.body}function pt(e){return new Request(e.url,{...e,body:dt(e)})}var ft=(e,t)=>async(r,s)=>{let n=new ht(r.ports[0]),i=s.payload.id,o=pt(s.payload),l=o.clone(),a=o.clone();M.cache.set(o,a),e.requests.set(i,a);try{await T(o,i,e.getRequestHandlers(),t,e.emitter,{onPassthroughResponse(){n.postMessage("PASSTHROUGH");},async onMockedResponse(c,{handler:u,parsedResult:p}){let h=c.clone(),g=c.clone(),f=ae(c);if(e.supports.readableStreamTransfer){let m=c.body;n.postMessage("MOCK_RESPONSE",{...f,body:m},m?[m]:void 0);}else {let m=c.body===null?null:await h.arrayBuffer();n.postMessage("MOCK_RESPONSE",{...f,body:m});}t.quiet||e.emitter.once("response:mocked",()=>{u.log({request:l,response:g,parsedResult:p});});}});}catch(c){c instanceof Error&&(d.error(`Uncaught exception in the request handler for "%s %s":
+Learn more about creating the Service Worker script: https://mswjs.io/docs/cli/init`)
+      );
+    }
+    throw new Error(
+      devUtils.formatMessage(
+        "Failed to register the Service Worker:\n\n%s",
+        registrationResult.error.message
+      )
+    );
+  }
+  return registrationResult.data;
+};
+function printStartMessage(args = {}) {
+  if (args.quiet) {
+    return;
+  }
+  const message = args.message || "Mocking enabled.";
+  console.groupCollapsed(
+    `%c${devUtils.formatMessage(message)}`,
+    "color:orangered;font-weight:bold;"
+  );
+  console.log(
+    "%cDocumentation: %chttps://mswjs.io/docs",
+    "font-weight:bold",
+    "font-weight:normal"
+  );
+  console.log("Found an issue? https://github.com/mswjs/msw/issues");
+  if (args.workerUrl) {
+    console.log("Worker script URL:", args.workerUrl);
+  }
+  if (args.workerScope) {
+    console.log("Worker scope:", args.workerScope);
+  }
+  console.groupEnd();
+}
+async function enableMocking(context, options) {
+  context.workerChannel.send("MOCK_ACTIVATE");
+  await context.events.once("MOCKING_ENABLED");
+  if (context.isMockingEnabled) {
+    devUtils.warn(
+      `Found a redundant "worker.start()" call. Note that starting the worker while mocking is already enabled will have no effect. Consider removing this "worker.start()" call.`
+    );
+    return;
+  }
+  context.isMockingEnabled = true;
+  printStartMessage({
+    quiet: options.quiet,
+    workerScope: context.registration?.scope,
+    workerUrl: context.worker?.scriptURL
+  });
+}
+var WorkerChannel = class {
+  constructor(port) {
+    this.port = port;
+  }
+  postMessage(event, ...rest) {
+    const [data, transfer] = rest;
+    this.port.postMessage({ type: event, data }, { transfer });
+  }
+};
+function pruneGetRequestBody(request) {
+  if (["HEAD", "GET"].includes(request.method)) {
+    return void 0;
+  }
+  return request.body;
+}
+function parseWorkerRequest(incomingRequest) {
+  return new Request(incomingRequest.url, {
+    ...incomingRequest,
+    body: pruneGetRequestBody(incomingRequest)
+  });
+}
+var createRequestListener = (context, options) => {
+  return async (event, message) => {
+    const messageChannel = new WorkerChannel(event.ports[0]);
+    const requestId = message.payload.id;
+    const request = parseWorkerRequest(message.payload);
+    const requestCloneForLogs = request.clone();
+    const requestClone = request.clone();
+    RequestHandler.cache.set(request, requestClone);
+    context.requests.set(requestId, requestClone);
+    try {
+      await handleRequest(
+        request,
+        requestId,
+        context.getRequestHandlers(),
+        options,
+        context.emitter,
+        {
+          onPassthroughResponse() {
+            messageChannel.postMessage("PASSTHROUGH");
+          },
+          async onMockedResponse(response, { handler, parsedResult }) {
+            const responseClone = response.clone();
+            const responseCloneForLogs = response.clone();
+            const responseInit = toResponseInit(response);
+            if (context.supports.readableStreamTransfer) {
+              const responseStreamOrNull = response.body;
+              messageChannel.postMessage(
+                "MOCK_RESPONSE",
+                {
+                  ...responseInit,
+                  body: responseStreamOrNull
+                },
+                responseStreamOrNull ? [responseStreamOrNull] : void 0
+              );
+            } else {
+              const responseBufferOrNull = response.body === null ? null : await responseClone.arrayBuffer();
+              messageChannel.postMessage("MOCK_RESPONSE", {
+                ...responseInit,
+                body: responseBufferOrNull
+              });
+            }
+            if (!options.quiet) {
+              context.emitter.once("response:mocked", () => {
+                handler.log({
+                  request: requestCloneForLogs,
+                  response: responseCloneForLogs,
+                  parsedResult
+                });
+              });
+            }
+          }
+        }
+      );
+    } catch (error22) {
+      if (error22 instanceof Error) {
+        devUtils.error(
+          `Uncaught exception in the request handler for "%s %s":
 
 %s
 
-This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/recipes/mocking-error-responses`,o.method,o.url,c.stack??c),n.postMessage("MOCK_RESPONSE",{status:500,statusText:"Request Handler Error",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:c.name,message:c.message,stack:c.stack})}));}};async function gt(e){e.workerChannel.send("INTEGRITY_CHECK_REQUEST");let{payload:t}=await e.events.once("INTEGRITY_CHECK_RESPONSE");t.checksum!=="26357c79639bfa20d64c0efca2a87423"&&d.warn(`The currently registered Service Worker has been generated by a different version of MSW (${t.packageVersion}) and may not be fully compatible with the installed version.
+This exception has been gracefully handled as a 500 response, however, it's strongly recommended to resolve this error, as it indicates a mistake in your code. If you wish to mock an error response, please see this guide: https://mswjs.io/docs/recipes/mocking-error-responses`,
+          request.method,
+          request.url,
+          error22.stack ?? error22
+        );
+        messageChannel.postMessage("MOCK_RESPONSE", {
+          status: 500,
+          statusText: "Request Handler Error",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: error22.name,
+            message: error22.message,
+            stack: error22.stack
+          })
+        });
+      }
+    }
+  };
+};
+async function checkWorkerIntegrity(context) {
+  context.workerChannel.send("INTEGRITY_CHECK_REQUEST");
+  const { payload } = await context.events.once("INTEGRITY_CHECK_RESPONSE");
+  if (payload.checksum !== "26357c79639bfa20d64c0efca2a87423") {
+    devUtils.warn(
+      `The currently registered Service Worker has been generated by a different version of MSW (${payload.packageVersion}) and may not be fully compatible with the installed version.
 
 It's recommended you update your worker script by running this command:
 
   \u2022 npx msw init <PUBLIC_DIR>
 
-You can also automate this process and make the worker script update automatically upon the library installations. Read more: https://mswjs.io/docs/cli/init.`);}var mt=new TextEncoder;function vt(e){return mt.encode(e)}function yt(e,t){return new TextDecoder(t).decode(e)}function wt(e){return e.buffer.slice(e.byteOffset,e.byteOffset+e.byteLength)}var bt=new Set([101,103,204,205,304]);function we(e){return bt.has(e)}var Rt=Object.defineProperty,kt=(e,t)=>{for(var r in t)Rt(e,r,{get:t[r],enumerable:!0});},$={};kt($,{blue:()=>Et,gray:()=>G,green:()=>qt,red:()=>Lt,yellow:()=>xt});function xt(e){return `\x1B[33m${e}\x1B[0m`}function Et(e){return `\x1B[34m${e}\x1B[0m`}function G(e){return `\x1B[90m${e}\x1B[0m`}function Lt(e){return `\x1B[31m${e}\x1B[0m`}function qt(e){return `\x1B[32m${e}\x1B[0m`}var W=X(),be=class{constructor(e){this.name=e,this.prefix=`[${this.name}]`;let t=he("DEBUG"),r=he("LOG_LEVEL");t==="1"||t==="true"||typeof t<"u"&&this.name.startsWith(t)?(this.debug=q(r,"debug")?v:this.debug,this.info=q(r,"info")?v:this.info,this.success=q(r,"success")?v:this.success,this.warning=q(r,"warning")?v:this.warning,this.error=q(r,"error")?v:this.error):(this.info=v,this.success=v,this.warning=v,this.error=v,this.only=v);}prefix;extend(e){return new be(`${this.name}:${e}`)}debug(e,...t){this.logEntry({level:"debug",message:G(e),positionals:t,prefix:this.prefix,colors:{prefix:"gray"}});}info(e,...t){this.logEntry({level:"info",message:e,positionals:t,prefix:this.prefix,colors:{prefix:"blue"}});let r=new St;return (s,...n)=>{r.measure(),this.logEntry({level:"info",message:`${s} ${G(`${r.deltaTime}ms`)}`,positionals:n,prefix:this.prefix,colors:{prefix:"blue"}});}}success(e,...t){this.logEntry({level:"info",message:e,positionals:t,prefix:`\u2714 ${this.prefix}`,colors:{timestamp:"green",prefix:"green"}});}warning(e,...t){this.logEntry({level:"warning",message:e,positionals:t,prefix:`\u26A0 ${this.prefix}`,colors:{timestamp:"yellow",prefix:"yellow"}});}error(e,...t){this.logEntry({level:"error",message:e,positionals:t,prefix:`\u2716 ${this.prefix}`,colors:{timestamp:"red",prefix:"red"}});}only(e){e();}createEntry(e,t){return {timestamp:new Date,level:e,message:t}}logEntry(e){let{level:t,message:r,prefix:s,colors:n,positionals:i=[]}=e,o=this.createEntry(t,r),l=n?.timestamp||"gray",a=n?.prefix||"gray",c={timestamp:$[l],prefix:$[a]};this.getWriter(t)([c.timestamp(this.formatTimestamp(o.timestamp))].concat(s!=null?c.prefix(s):[]).concat(de(r)).join(" "),...i.map(de));}formatTimestamp(e){return `${e.toLocaleTimeString("en-GB")}:${e.getMilliseconds()}`}getWriter(e){switch(e){case"debug":case"success":case"info":return _t;case"warning":return Pt;case"error":return Ot}}},St=class{startTime;endTime;deltaTime;constructor(){this.startTime=performance.now();}measure(){this.endTime=performance.now();let e=this.endTime-this.startTime;this.deltaTime=e.toFixed(2);}},v=()=>{};function _t(e,...t){if(W){process.stdout.write(S(e,...t)+`
-`);return}console.log(e,...t);}function Pt(e,...t){if(W){process.stderr.write(S(e,...t)+`
-`);return}console.warn(e,...t);}function Ot(e,...t){if(W){process.stderr.write(S(e,...t)+`
-`);return}console.error(e,...t);}function he(e){return W?process.env[e]:globalThis[e]?.toString()}function q(e,t){return e!==void 0&&e!==t}function de(e){return typeof e>"u"?"undefined":e===null?"null":typeof e=="string"?e:typeof e=="object"?JSON.stringify(e):e.toString()}var Mt=class extends Error{constructor(e,t,r){super(`Possible EventEmitter memory leak detected. ${r} ${t.toString()} listeners added. Use emitter.setMaxListeners() to increase limit`),this.emitter=e,this.type=t,this.count=r,this.name="MaxListenersExceededWarning";}},Re=class{static listenerCount(e,t){return e.listenerCount(t)}constructor(){this.events=new Map,this.maxListeners=Re.defaultMaxListeners,this.hasWarnedAboutPotentialMemoryLeak=!1;}_emitInternalEvent(e,t,r){this.emit(e,t,r);}_getListeners(e){return Array.prototype.concat.apply([],this.events.get(e))||[]}_removeListener(e,t){let r=e.indexOf(t);return r>-1&&e.splice(r,1),[]}_wrapOnceListener(e,t){let r=(...s)=>(this.removeListener(e,r),t.apply(this,s));return Object.defineProperty(r,"name",{value:t.name}),r}setMaxListeners(e){return this.maxListeners=e,this}getMaxListeners(){return this.maxListeners}eventNames(){return Array.from(this.events.keys())}emit(e,...t){let r=this._getListeners(e);return r.forEach(s=>{s.apply(this,t);}),r.length>0}addListener(e,t){this._emitInternalEvent("newListener",e,t);let r=this._getListeners(e).concat(t);if(this.events.set(e,r),this.maxListeners>0&&this.listenerCount(e)>this.maxListeners&&!this.hasWarnedAboutPotentialMemoryLeak){this.hasWarnedAboutPotentialMemoryLeak=!0;let s=new Mt(this,e,this.listenerCount(e));console.warn(s);}return this}on(e,t){return this.addListener(e,t)}once(e,t){return this.addListener(e,this._wrapOnceListener(e,t))}prependListener(e,t){let r=this._getListeners(e);if(r.length>0){let s=[t].concat(r);this.events.set(e,s);}else this.events.set(e,r.concat(t));return this}prependOnceListener(e,t){return this.prependListener(e,this._wrapOnceListener(e,t))}removeListener(e,t){let r=this._getListeners(e);return r.length>0&&(this._removeListener(r,t),this.events.set(e,r),this._emitInternalEvent("removeListener",e,t)),this}off(e,t){return this.removeListener(e,t)}removeAllListeners(e){return e?this.events.delete(e):this.events.clear(),this}listeners(e){return Array.from(this._getListeners(e))}listenerCount(e){return this._getListeners(e).length}rawListeners(e){return this.listeners(e)}},ke=Re;ke.defaultMaxListeners=10;var L=Symbol("isPatchedModule");function pe(e){return globalThis[e]||void 0}function Tt(e,t){globalThis[e]=t;}function Ct(e){delete globalThis[e];}var V=class{constructor(e){this.symbol=e,this.readyState="INACTIVE",this.emitter=new ke,this.subscriptions=[],this.logger=new be(e.description),this.emitter.setMaxListeners(0),this.logger.info("constructing the interceptor...");}checkEnvironment(){return !0}apply(){let e=this.logger.extend("apply");if(e.info("applying the interceptor..."),this.readyState==="APPLIED"){e.info("intercepted already applied!");return}if(!this.checkEnvironment()){e.info("the interceptor cannot be applied in this environment!");return}this.readyState="APPLYING";let r=this.getInstance();if(r){e.info("found a running instance, reusing..."),this.on=(s,n)=>(e.info('proxying the "%s" listener',s),r.emitter.addListener(s,n),this.subscriptions.push(()=>{r.emitter.removeListener(s,n),e.info('removed proxied "%s" listener!',s);}),this),this.readyState="APPLIED";return}e.info("no running instance found, setting up a new instance..."),this.setup(),this.setInstance(),this.readyState="APPLIED";}setup(){}on(e,t){let r=this.logger.extend("on");return this.readyState==="DISPOSING"||this.readyState==="DISPOSED"?(r.info("cannot listen to events, already disposed!"),this):(r.info('adding "%s" event listener:',e,t),this.emitter.on(e,t),this)}once(e,t){return this.emitter.once(e,t),this}off(e,t){return this.emitter.off(e,t),this}removeAllListeners(e){return this.emitter.removeAllListeners(e),this}dispose(){let e=this.logger.extend("dispose");if(this.readyState==="DISPOSED"){e.info("cannot dispose, already disposed!");return}if(e.info("disposing the interceptor..."),this.readyState="DISPOSING",!this.getInstance()){e.info("no interceptors running, skipping dispose...");return}if(this.clearInstance(),e.info("global symbol deleted:",pe(this.symbol)),this.subscriptions.length>0){e.info("disposing of %d subscriptions...",this.subscriptions.length);for(let t of this.subscriptions)t();this.subscriptions=[],e.info("disposed of all subscriptions!",this.subscriptions.length);}this.emitter.removeAllListeners(),e.info("destroyed the listener!"),this.readyState="DISPOSED";}getInstance(){var e;let t=pe(this.symbol);return this.logger.info("retrieved global instance:",(e=t?.constructor)==null?void 0:e.name),t}setInstance(){Tt(this.symbol,this),this.logger.info("set global instance!",this.symbol.description);}clearInstance(){Ct(this.symbol),this.logger.info("cleared global instance!",this.symbol.description);}},N=class extends V{constructor(e){N.symbol=Symbol(e.name),super(N.symbol),this.interceptors=e.interceptors;}setup(){let e=this.logger.extend("setup");e.info("applying all %d interceptors...",this.interceptors.length);for(let t of this.interceptors)e.info('applying "%s" interceptor...',t.constructor.name),t.apply(),e.info("adding interceptor dispose subscription"),this.subscriptions.push(()=>t.dispose());}on(e,t){for(let r of this.interceptors)r.on(e,t);return this}once(e,t){for(let r of this.interceptors)r.once(e,t);return this}off(e,t){for(let r of this.interceptors)r.off(e,t);return this}removeAllListeners(e){for(let t of this.interceptors)t.removeAllListeners(e);return this}};function It(e){return (t,r)=>{let{payload:s}=r,{requestId:n}=s,i=e.requests.get(n);if(e.requests.delete(n),s.type?.includes("opaque"))return;let o=s.status===0?Response.error():new Response(we(s.status)?null:s.body,s);o.url||Object.defineProperty(o,"url",{value:i.url,enumerable:!0,writable:!1}),e.emitter.emit(s.isMockedResponse?"response:mocked":"response:bypass",{response:o,request:i,requestId:s.requestId});}}function At(e,t){!t?.quiet&&!location.href.startsWith(e.scope)&&d.warn(`Cannot intercept requests on this page because it's outside of the worker's scope ("${e.scope}"). If you wish to mock API requests on this page, you must resolve this scope issue.
+You can also automate this process and make the worker script update automatically upon the library installations. Read more: https://mswjs.io/docs/cli/init.`
+    );
+  }
+}
+var encoder = new TextEncoder();
+function encodeBuffer(text) {
+  return encoder.encode(text);
+}
+function decodeBuffer(buffer, encoding) {
+  const decoder = new TextDecoder(encoding);
+  return decoder.decode(buffer);
+}
+function toArrayBuffer(array) {
+  return array.buffer.slice(
+    array.byteOffset,
+    array.byteOffset + array.byteLength
+  );
+}
+var RESPONSE_STATUS_CODES_WITHOUT_BODY = /* @__PURE__ */ new Set([
+  101,
+  103,
+  204,
+  205,
+  304
+]);
+function isResponseWithoutBody(status) {
+  return RESPONSE_STATUS_CODES_WITHOUT_BODY.has(status);
+}
+var __defProp2 = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp2(target, name, { get: all[name], enumerable: true });
+};
+var colors_exports = {};
+__export(colors_exports, {
+  blue: () => blue,
+  gray: () => gray,
+  green: () => green,
+  red: () => red,
+  yellow: () => yellow
+});
+function yellow(text) {
+  return `\x1B[33m${text}\x1B[0m`;
+}
+function blue(text) {
+  return `\x1B[34m${text}\x1B[0m`;
+}
+function gray(text) {
+  return `\x1B[90m${text}\x1B[0m`;
+}
+function red(text) {
+  return `\x1B[31m${text}\x1B[0m`;
+}
+function green(text) {
+  return `\x1B[32m${text}\x1B[0m`;
+}
+var IS_NODE = isNodeProcess();
+var Logger = class {
+  constructor(name) {
+    this.name = name;
+    this.prefix = `[${this.name}]`;
+    const LOGGER_NAME = getVariable("DEBUG");
+    const LOGGER_LEVEL = getVariable("LOG_LEVEL");
+    const isLoggingEnabled = LOGGER_NAME === "1" || LOGGER_NAME === "true" || typeof LOGGER_NAME !== "undefined" && this.name.startsWith(LOGGER_NAME);
+    if (isLoggingEnabled) {
+      this.debug = isDefinedAndNotEquals(LOGGER_LEVEL, "debug") ? noop : this.debug;
+      this.info = isDefinedAndNotEquals(LOGGER_LEVEL, "info") ? noop : this.info;
+      this.success = isDefinedAndNotEquals(LOGGER_LEVEL, "success") ? noop : this.success;
+      this.warning = isDefinedAndNotEquals(LOGGER_LEVEL, "warning") ? noop : this.warning;
+      this.error = isDefinedAndNotEquals(LOGGER_LEVEL, "error") ? noop : this.error;
+    } else {
+      this.info = noop;
+      this.success = noop;
+      this.warning = noop;
+      this.error = noop;
+      this.only = noop;
+    }
+  }
+  prefix;
+  extend(domain) {
+    return new Logger(`${this.name}:${domain}`);
+  }
+  /**
+   * Print a debug message.
+   * @example
+   * logger.debug('no duplicates found, creating a document...')
+   */
+  debug(message, ...positionals) {
+    this.logEntry({
+      level: "debug",
+      message: gray(message),
+      positionals,
+      prefix: this.prefix,
+      colors: {
+        prefix: "gray"
+      }
+    });
+  }
+  /**
+   * Print an info message.
+   * @example
+   * logger.info('start parsing...')
+   */
+  info(message, ...positionals) {
+    this.logEntry({
+      level: "info",
+      message,
+      positionals,
+      prefix: this.prefix,
+      colors: {
+        prefix: "blue"
+      }
+    });
+    const performance2 = new PerformanceEntry();
+    return (message2, ...positionals2) => {
+      performance2.measure();
+      this.logEntry({
+        level: "info",
+        message: `${message2} ${gray(`${performance2.deltaTime}ms`)}`,
+        positionals: positionals2,
+        prefix: this.prefix,
+        colors: {
+          prefix: "blue"
+        }
+      });
+    };
+  }
+  /**
+   * Print a success message.
+   * @example
+   * logger.success('successfully created document')
+   */
+  success(message, ...positionals) {
+    this.logEntry({
+      level: "info",
+      message,
+      positionals,
+      prefix: `\u2714 ${this.prefix}`,
+      colors: {
+        timestamp: "green",
+        prefix: "green"
+      }
+    });
+  }
+  /**
+   * Print a warning.
+   * @example
+   * logger.warning('found legacy document format')
+   */
+  warning(message, ...positionals) {
+    this.logEntry({
+      level: "warning",
+      message,
+      positionals,
+      prefix: `\u26A0 ${this.prefix}`,
+      colors: {
+        timestamp: "yellow",
+        prefix: "yellow"
+      }
+    });
+  }
+  /**
+   * Print an error message.
+   * @example
+   * logger.error('something went wrong')
+   */
+  error(message, ...positionals) {
+    this.logEntry({
+      level: "error",
+      message,
+      positionals,
+      prefix: `\u2716 ${this.prefix}`,
+      colors: {
+        timestamp: "red",
+        prefix: "red"
+      }
+    });
+  }
+  /**
+   * Execute the given callback only when the logging is enabled.
+   * This is skipped in its entirety and has no runtime cost otherwise.
+   * This executes regardless of the log level.
+   * @example
+   * logger.only(() => {
+   *   logger.info('additional info')
+   * })
+   */
+  only(callback) {
+    callback();
+  }
+  createEntry(level, message) {
+    return {
+      timestamp: /* @__PURE__ */ new Date(),
+      level,
+      message
+    };
+  }
+  logEntry(args) {
+    const {
+      level,
+      message,
+      prefix,
+      colors: customColors,
+      positionals = []
+    } = args;
+    const entry = this.createEntry(level, message);
+    const timestampColor = customColors?.timestamp || "gray";
+    const prefixColor = customColors?.prefix || "gray";
+    const colorize = {
+      timestamp: colors_exports[timestampColor],
+      prefix: colors_exports[prefixColor]
+    };
+    const write = this.getWriter(level);
+    write(
+      [colorize.timestamp(this.formatTimestamp(entry.timestamp))].concat(prefix != null ? colorize.prefix(prefix) : []).concat(serializeInput(message)).join(" "),
+      ...positionals.map(serializeInput)
+    );
+  }
+  formatTimestamp(timestamp) {
+    return `${timestamp.toLocaleTimeString(
+      "en-GB"
+    )}:${timestamp.getMilliseconds()}`;
+  }
+  getWriter(level) {
+    switch (level) {
+      case "debug":
+      case "success":
+      case "info": {
+        return log;
+      }
+      case "warning": {
+        return warn2;
+      }
+      case "error": {
+        return error2;
+      }
+    }
+  }
+};
+var PerformanceEntry = class {
+  startTime;
+  endTime;
+  deltaTime;
+  constructor() {
+    this.startTime = performance.now();
+  }
+  measure() {
+    this.endTime = performance.now();
+    const deltaTime = this.endTime - this.startTime;
+    this.deltaTime = deltaTime.toFixed(2);
+  }
+};
+var noop = () => void 0;
+function log(message, ...positionals) {
+  if (IS_NODE) {
+    process.stdout.write(format2(message, ...positionals) + "\n");
+    return;
+  }
+  console.log(message, ...positionals);
+}
+function warn2(message, ...positionals) {
+  if (IS_NODE) {
+    process.stderr.write(format2(message, ...positionals) + "\n");
+    return;
+  }
+  console.warn(message, ...positionals);
+}
+function error2(message, ...positionals) {
+  if (IS_NODE) {
+    process.stderr.write(format2(message, ...positionals) + "\n");
+    return;
+  }
+  console.error(message, ...positionals);
+}
+function getVariable(variableName) {
+  if (IS_NODE) {
+    return process.env[variableName];
+  }
+  return globalThis[variableName]?.toString();
+}
+function isDefinedAndNotEquals(value, expected) {
+  return value !== void 0 && value !== expected;
+}
+function serializeInput(message) {
+  if (typeof message === "undefined") {
+    return "undefined";
+  }
+  if (message === null) {
+    return "null";
+  }
+  if (typeof message === "string") {
+    return message;
+  }
+  if (typeof message === "object") {
+    return JSON.stringify(message);
+  }
+  return message.toString();
+}
+var MemoryLeakError2 = class extends Error {
+  constructor(emitter, type, count) {
+    super(
+      `Possible EventEmitter memory leak detected. ${count} ${type.toString()} listeners added. Use emitter.setMaxListeners() to increase limit`
+    );
+    this.emitter = emitter;
+    this.type = type;
+    this.count = count;
+    this.name = "MaxListenersExceededWarning";
+  }
+};
+var _Emitter2 = class {
+  static listenerCount(emitter, eventName) {
+    return emitter.listenerCount(eventName);
+  }
+  constructor() {
+    this.events = /* @__PURE__ */ new Map();
+    this.maxListeners = _Emitter2.defaultMaxListeners;
+    this.hasWarnedAboutPotentialMemoryLeak = false;
+  }
+  _emitInternalEvent(internalEventName, eventName, listener) {
+    this.emit(
+      internalEventName,
+      ...[eventName, listener]
+    );
+  }
+  _getListeners(eventName) {
+    return Array.prototype.concat.apply([], this.events.get(eventName)) || [];
+  }
+  _removeListener(listeners, listener) {
+    const index = listeners.indexOf(listener);
+    if (index > -1) {
+      listeners.splice(index, 1);
+    }
+    return [];
+  }
+  _wrapOnceListener(eventName, listener) {
+    const onceListener = (...data) => {
+      this.removeListener(eventName, onceListener);
+      return listener.apply(this, data);
+    };
+    Object.defineProperty(onceListener, "name", { value: listener.name });
+    return onceListener;
+  }
+  setMaxListeners(maxListeners) {
+    this.maxListeners = maxListeners;
+    return this;
+  }
+  /**
+   * Returns the current max listener value for the `Emitter` which is
+   * either set by `emitter.setMaxListeners(n)` or defaults to
+   * `Emitter.defaultMaxListeners`.
+   */
+  getMaxListeners() {
+    return this.maxListeners;
+  }
+  /**
+   * Returns an array listing the events for which the emitter has registered listeners.
+   * The values in the array will be strings or Symbols.
+   */
+  eventNames() {
+    return Array.from(this.events.keys());
+  }
+  /**
+   * Synchronously calls each of the listeners registered for the event named `eventName`,
+   * in the order they were registered, passing the supplied arguments to each.
+   * Returns `true` if the event has listeners, `false` otherwise.
+   *
+   * @example
+   * const emitter = new Emitter<{ hello: [string] }>()
+   * emitter.emit('hello', 'John')
+   */
+  emit(eventName, ...data) {
+    const listeners = this._getListeners(eventName);
+    listeners.forEach((listener) => {
+      listener.apply(this, data);
+    });
+    return listeners.length > 0;
+  }
+  addListener(eventName, listener) {
+    this._emitInternalEvent("newListener", eventName, listener);
+    const nextListeners = this._getListeners(eventName).concat(listener);
+    this.events.set(eventName, nextListeners);
+    if (this.maxListeners > 0 && this.listenerCount(eventName) > this.maxListeners && !this.hasWarnedAboutPotentialMemoryLeak) {
+      this.hasWarnedAboutPotentialMemoryLeak = true;
+      const memoryLeakWarning = new MemoryLeakError2(
+        this,
+        eventName,
+        this.listenerCount(eventName)
+      );
+      console.warn(memoryLeakWarning);
+    }
+    return this;
+  }
+  on(eventName, listener) {
+    return this.addListener(eventName, listener);
+  }
+  once(eventName, listener) {
+    return this.addListener(
+      eventName,
+      this._wrapOnceListener(eventName, listener)
+    );
+  }
+  prependListener(eventName, listener) {
+    const listeners = this._getListeners(eventName);
+    if (listeners.length > 0) {
+      const nextListeners = [listener].concat(listeners);
+      this.events.set(eventName, nextListeners);
+    } else {
+      this.events.set(eventName, listeners.concat(listener));
+    }
+    return this;
+  }
+  prependOnceListener(eventName, listener) {
+    return this.prependListener(
+      eventName,
+      this._wrapOnceListener(eventName, listener)
+    );
+  }
+  removeListener(eventName, listener) {
+    const listeners = this._getListeners(eventName);
+    if (listeners.length > 0) {
+      this._removeListener(listeners, listener);
+      this.events.set(eventName, listeners);
+      this._emitInternalEvent("removeListener", eventName, listener);
+    }
+    return this;
+  }
+  /**
+   * Alias for `emitter.removeListener()`.
+   *
+   * @example
+   * emitter.off('hello', listener)
+   */
+  off(eventName, listener) {
+    return this.removeListener(eventName, listener);
+  }
+  removeAllListeners(eventName) {
+    if (eventName) {
+      this.events.delete(eventName);
+    } else {
+      this.events.clear();
+    }
+    return this;
+  }
+  /**
+   * Returns a copy of the array of listeners for the event named `eventName`.
+   */
+  listeners(eventName) {
+    return Array.from(this._getListeners(eventName));
+  }
+  /**
+   * Returns the number of listeners listening to the event named `eventName`.
+   */
+  listenerCount(eventName) {
+    return this._getListeners(eventName).length;
+  }
+  rawListeners(eventName) {
+    return this.listeners(eventName);
+  }
+};
+var Emitter2 = _Emitter2;
+Emitter2.defaultMaxListeners = 10;
+var IS_PATCHED_MODULE = Symbol("isPatchedModule");
+function getGlobalSymbol(symbol) {
+  return (
+    // @ts-ignore https://github.com/Microsoft/TypeScript/issues/24587
+    globalThis[symbol] || void 0
+  );
+}
+function setGlobalSymbol(symbol, value) {
+  globalThis[symbol] = value;
+}
+function deleteGlobalSymbol(symbol) {
+  delete globalThis[symbol];
+}
+var Interceptor = class {
+  constructor(symbol) {
+    this.symbol = symbol;
+    this.readyState = "INACTIVE";
+    this.emitter = new Emitter2();
+    this.subscriptions = [];
+    this.logger = new Logger(symbol.description);
+    this.emitter.setMaxListeners(0);
+    this.logger.info("constructing the interceptor...");
+  }
+  /**
+   * Determine if this interceptor can be applied
+   * in the current environment.
+   */
+  checkEnvironment() {
+    return true;
+  }
+  /**
+   * Apply this interceptor to the current process.
+   * Returns an already running interceptor instance if it's present.
+   */
+  apply() {
+    const logger = this.logger.extend("apply");
+    logger.info("applying the interceptor...");
+    if (this.readyState === "APPLIED") {
+      logger.info("intercepted already applied!");
+      return;
+    }
+    const shouldApply = this.checkEnvironment();
+    if (!shouldApply) {
+      logger.info("the interceptor cannot be applied in this environment!");
+      return;
+    }
+    this.readyState = "APPLYING";
+    const runningInstance = this.getInstance();
+    if (runningInstance) {
+      logger.info("found a running instance, reusing...");
+      this.on = (event, listener) => {
+        logger.info('proxying the "%s" listener', event);
+        runningInstance.emitter.addListener(event, listener);
+        this.subscriptions.push(() => {
+          runningInstance.emitter.removeListener(event, listener);
+          logger.info('removed proxied "%s" listener!', event);
+        });
+        return this;
+      };
+      this.readyState = "APPLIED";
+      return;
+    }
+    logger.info("no running instance found, setting up a new instance...");
+    this.setup();
+    this.setInstance();
+    this.readyState = "APPLIED";
+  }
+  /**
+   * Setup the module augments and stubs necessary for this interceptor.
+   * This method is not run if there's a running interceptor instance
+   * to prevent instantiating an interceptor multiple times.
+   */
+  setup() {
+  }
+  /**
+   * Listen to the interceptor's public events.
+   */
+  on(event, listener) {
+    const logger = this.logger.extend("on");
+    if (this.readyState === "DISPOSING" || this.readyState === "DISPOSED") {
+      logger.info("cannot listen to events, already disposed!");
+      return this;
+    }
+    logger.info('adding "%s" event listener:', event, listener);
+    this.emitter.on(event, listener);
+    return this;
+  }
+  once(event, listener) {
+    this.emitter.once(event, listener);
+    return this;
+  }
+  off(event, listener) {
+    this.emitter.off(event, listener);
+    return this;
+  }
+  removeAllListeners(event) {
+    this.emitter.removeAllListeners(event);
+    return this;
+  }
+  /**
+   * Disposes of any side-effects this interceptor has introduced.
+   */
+  dispose() {
+    const logger = this.logger.extend("dispose");
+    if (this.readyState === "DISPOSED") {
+      logger.info("cannot dispose, already disposed!");
+      return;
+    }
+    logger.info("disposing the interceptor...");
+    this.readyState = "DISPOSING";
+    if (!this.getInstance()) {
+      logger.info("no interceptors running, skipping dispose...");
+      return;
+    }
+    this.clearInstance();
+    logger.info("global symbol deleted:", getGlobalSymbol(this.symbol));
+    if (this.subscriptions.length > 0) {
+      logger.info("disposing of %d subscriptions...", this.subscriptions.length);
+      for (const dispose of this.subscriptions) {
+        dispose();
+      }
+      this.subscriptions = [];
+      logger.info("disposed of all subscriptions!", this.subscriptions.length);
+    }
+    this.emitter.removeAllListeners();
+    logger.info("destroyed the listener!");
+    this.readyState = "DISPOSED";
+  }
+  getInstance() {
+    var _a;
+    const instance = getGlobalSymbol(this.symbol);
+    this.logger.info("retrieved global instance:", (_a = instance == null ? void 0 : instance.constructor) == null ? void 0 : _a.name);
+    return instance;
+  }
+  setInstance() {
+    setGlobalSymbol(this.symbol, this);
+    this.logger.info("set global instance!", this.symbol.description);
+  }
+  clearInstance() {
+    deleteGlobalSymbol(this.symbol);
+    this.logger.info("cleared global instance!", this.symbol.description);
+  }
+};
+var BatchInterceptor = class extends Interceptor {
+  constructor(options) {
+    BatchInterceptor.symbol = Symbol(options.name);
+    super(BatchInterceptor.symbol);
+    this.interceptors = options.interceptors;
+  }
+  setup() {
+    const logger = this.logger.extend("setup");
+    logger.info("applying all %d interceptors...", this.interceptors.length);
+    for (const interceptor of this.interceptors) {
+      logger.info('applying "%s" interceptor...', interceptor.constructor.name);
+      interceptor.apply();
+      logger.info("adding interceptor dispose subscription");
+      this.subscriptions.push(() => interceptor.dispose());
+    }
+  }
+  on(event, listener) {
+    for (const interceptor of this.interceptors) {
+      interceptor.on(event, listener);
+    }
+    return this;
+  }
+  once(event, listener) {
+    for (const interceptor of this.interceptors) {
+      interceptor.once(event, listener);
+    }
+    return this;
+  }
+  off(event, listener) {
+    for (const interceptor of this.interceptors) {
+      interceptor.off(event, listener);
+    }
+    return this;
+  }
+  removeAllListeners(event) {
+    for (const interceptors of this.interceptors) {
+      interceptors.removeAllListeners(event);
+    }
+    return this;
+  }
+};
+function createResponseListener(context) {
+  return (_, message) => {
+    const { payload: responseJson } = message;
+    const { requestId } = responseJson;
+    const request = context.requests.get(requestId);
+    context.requests.delete(requestId);
+    if (responseJson.type?.includes("opaque")) {
+      return;
+    }
+    const response = responseJson.status === 0 ? Response.error() : new Response(
+      /**
+       * Responses may be streams here, but when we create a response object
+       * with null-body status codes, like 204, 205, 304 Response will
+       * throw when passed a non-null body, so ensure it's null here
+       * for those codes
+       */
+      isResponseWithoutBody(responseJson.status) ? null : responseJson.body,
+      responseJson
+    );
+    if (!response.url) {
+      Object.defineProperty(response, "url", {
+        value: request.url,
+        enumerable: true,
+        writable: false
+      });
+    }
+    context.emitter.emit(
+      responseJson.isMockedResponse ? "response:mocked" : "response:bypass",
+      {
+        response,
+        request,
+        requestId: responseJson.requestId
+      }
+    );
+  };
+}
+function validateWorkerScope(registration, options) {
+  if (!options?.quiet && !location.href.startsWith(registration.scope)) {
+    devUtils.warn(
+      `Cannot intercept requests on this page because it's outside of the worker's scope ("${registration.scope}"). If you wish to mock API requests on this page, you must resolve this scope issue.
 
 - (Recommended) Register the worker at the root level ("/") of your application.
-- Set the "Service-Worker-Allowed" response header to allow out-of-scope workers.`);}var Wt=e=>function(r,s){return (async()=>{e.events.removeAllListeners(),e.workerChannel.on("REQUEST",ft(e,r)),e.workerChannel.on("RESPONSE",It(e));let o=await ct(r.serviceWorker.url,r.serviceWorker.options,r.findWorker),[l,a]=o;if(!l){let c=s?.findWorker?d.formatMessage(`Failed to locate the Service Worker registration using a custom "findWorker" predicate.
+- Set the "Service-Worker-Allowed" response header to allow out-of-scope workers.`
+    );
+  }
+}
+var createStartHandler = (context) => {
+  return function start(options, customOptions) {
+    const startWorkerInstance = async () => {
+      context.events.removeAllListeners();
+      context.workerChannel.on(
+        "REQUEST",
+        createRequestListener(context, options)
+      );
+      context.workerChannel.on("RESPONSE", createResponseListener(context));
+      const instance = await getWorkerInstance(
+        options.serviceWorker.url,
+        options.serviceWorker.options,
+        options.findWorker
+      );
+      const [worker2, registration] = instance;
+      if (!worker2) {
+        const missingWorkerMessage = customOptions?.findWorker ? devUtils.formatMessage(
+          `Failed to locate the Service Worker registration using a custom "findWorker" predicate.
 
 Please ensure that the custom predicate properly locates the Service Worker registration at "%s".
 More details: https://mswjs.io/docs/api/setup-worker/start#findworker
-`,r.serviceWorker.url):d.formatMessage(`Failed to locate the Service Worker registration.
+`,
+          options.serviceWorker.url
+        ) : devUtils.formatMessage(
+          `Failed to locate the Service Worker registration.
 
 This most likely means that the worker script URL "%s" cannot resolve against the actual public hostname (%s). This may happen if your application runs behind a proxy, or has a dynamic hostname.
 
-Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`,r.serviceWorker.url,location.host);throw new Error(c)}return e.worker=l,e.registration=a,e.events.addListener(window,"beforeunload",()=>{l.state!=="redundant"&&e.workerChannel.send("CLIENT_CLOSED"),window.clearInterval(e.keepAliveInterval);}),await gt(e).catch(c=>{d.error("Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below."),console.error(c);}),e.keepAliveInterval=window.setInterval(()=>e.workerChannel.send("KEEPALIVE_REQUEST"),5e3),At(a,e.startOptions),a})().then(async o=>{let l=o.installing||o.waiting;return l&&await new Promise(a=>{l.addEventListener("statechange",()=>{if(l.state==="activated")return a()});}),await ut(e,r).catch(a=>{throw new Error(`Failed to enable mocking: ${a?.message}`)}),o})};function xe(e={}){e.quiet||console.log(`%c${d.formatMessage("Mocking disabled.")}`,"color:orangered;font-weight:bold;");}var Ut=e=>function(){if(!e.isMockingEnabled){d.warn('Found a redundant "worker.stop()" call. Note that stopping the worker while mocking already stopped has no effect. Consider removing this "worker.stop()" call.');return}e.workerChannel.send("MOCK_DEACTIVATE"),e.isMockingEnabled=!1,window.clearInterval(e.keepAliveInterval),xe({quiet:e.startOptions?.quiet});},Ht={serviceWorker:{url:"/mockServiceWorker.js",options:null},quiet:!1,waitUntilReady:!0,onUnhandledRequest:"warn",findWorker(e,t){return e===t}};function jt(){let e=(t,r)=>{e.state="pending",e.resolve=s=>{if(e.state!=="pending")return;e.result=s;let n=i=>(e.state="fulfilled",i);return t(s instanceof Promise?s:Promise.resolve(s).then(n))},e.reject=s=>{if(e.state==="pending")return queueMicrotask(()=>{e.state="rejected";}),r(e.rejectionReason=s)};};return e}var Ee=class extends Promise{#e;resolve;reject;constructor(e=null){let t=jt();super((r,s)=>{t(r,s),e?.(t.resolve,t.reject);}),this.#e=t,this.resolve=this.#e.resolve,this.reject=this.#e.reject;}get state(){return this.#e.state}get rejectionReason(){return this.#e.rejectionReason}then(e,t){return this.#t(super.then(e,t))}catch(e){return this.#t(super.catch(e))}finally(e){return this.#t(super.finally(e))}#t(e){return Object.defineProperties(e,{resolve:{configurable:!0,value:this.resolve},reject:{configurable:!0,value:this.reject}})}};function Le(){return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(e){let t=Math.random()*16|0;return (e=="x"?t:t&3|8).toString(16)})}var Dt=class{constructor(e){this.request=e,this.responsePromise=new Ee;}respondWith(e){w(this.responsePromise.state==="pending",'Failed to respond to "%s %s" request: the "request" event has already been responded to.',this.request.method,this.request.url),this.responsePromise.resolve(e);}};function qe(e){let t=new Dt(e);return Reflect.set(e,"respondWith",t.respondWith.bind(t)),{interactiveRequest:e,requestController:t}}async function Se(e,t,...r){let s=e.listeners(t);if(s.length!==0)for(let n of s)await n.apply(e,r);}function Bt(e,t){try{return e[t],!0}catch{return !1}}function Ft(e){try{return new URL(e),!0}catch{return !1}}var _e=class extends V{constructor(){super(_e.symbol);}checkEnvironment(){return typeof globalThis<"u"&&typeof globalThis.fetch<"u"}setup(){let e=globalThis.fetch;w(!e[L],'Failed to patch the "fetch" module: already patched.'),globalThis.fetch=async(t,r)=>{var s;let n=Le(),i=typeof t=="string"&&typeof location<"u"&&!Ft(t)?new URL(t,location.origin):t,o=new Request(i,r);this.logger.info("[%s] %s",o.method,o.url);let{interactiveRequest:l,requestController:a}=qe(o);this.logger.info('emitting the "request" event for %d listener(s)...',this.emitter.listenerCount("request")),this.emitter.once("request",({requestId:g})=>{g===n&&a.responsePromise.state==="pending"&&a.responsePromise.resolve(void 0);}),this.logger.info("awaiting for the mocked response...");let c=l.signal,u=new Ee;c&&c.addEventListener("abort",()=>{u.reject(c.reason);},{once:!0});let p=await K(async()=>{let g=Se(this.emitter,"request",{request:l,requestId:n});await Promise.race([u,g,a.responsePromise]),this.logger.info("all request listeners have been resolved!");let f=await a.responsePromise;return this.logger.info("event.respondWith called with:",f),f});if(u.state==="rejected")return Promise.reject(u.rejectionReason);if(p.error)return Promise.reject(fe(p.error));let h=p.data;if(h&&!((s=o.signal)!=null&&s.aborted)){if(this.logger.info("received mocked response:",h),Bt(h,"type")&&h.type==="error")return this.logger.info("received a network error response, rejecting the request promise..."),Promise.reject(fe(h));let g=h.clone();return this.emitter.emit("response",{response:g,isMockedResponse:!0,request:l,requestId:n}),Object.defineProperty(h,"url",{writable:!1,enumerable:!0,configurable:!1,value:o.url}),h}return this.logger.info("no mocked response received!"),e(o).then(g=>{let f=g.clone();return this.logger.info("original fetch performed",f),this.emitter.emit("response",{response:f,isMockedResponse:!1,request:l,requestId:n}),g})},Object.defineProperty(globalThis.fetch,L,{enumerable:!0,configurable:!0,value:!0}),this.subscriptions.push(()=>{Object.defineProperty(globalThis.fetch,L,{value:void 0}),globalThis.fetch=e,this.logger.info('restored native "globalThis.fetch"!',globalThis.fetch.name);});}},Pe=_e;Pe.symbol=Symbol("fetch");function fe(e){return Object.assign(new TypeError("Failed to fetch"),{cause:e})}function $t(e,t){let r=new Uint8Array(e.byteLength+t.byteLength);return r.set(e,0),r.set(t,e.byteLength),r}var Oe=class{constructor(e,t){this.AT_TARGET=0,this.BUBBLING_PHASE=0,this.CAPTURING_PHASE=0,this.NONE=0,this.type="",this.srcElement=null,this.currentTarget=null,this.eventPhase=0,this.isTrusted=!0,this.composed=!1,this.cancelable=!0,this.defaultPrevented=!1,this.bubbles=!0,this.lengthComputable=!0,this.loaded=0,this.total=0,this.cancelBubble=!1,this.returnValue=!0,this.type=e,this.target=t?.target||null,this.currentTarget=t?.currentTarget||null,this.timeStamp=Date.now();}composedPath(){return []}initEvent(e,t,r){this.type=e,this.bubbles=!!t,this.cancelable=!!r;}preventDefault(){this.defaultPrevented=!0;}stopPropagation(){}stopImmediatePropagation(){}},Gt=class extends Oe{constructor(e,t){super(e),this.lengthComputable=t?.lengthComputable||!1,this.composed=t?.composed||!1,this.loaded=t?.loaded||0,this.total=t?.total||0;}},Nt=typeof ProgressEvent<"u";function Xt(e,t,r){let s=["error","progress","loadstart","loadend","load","timeout","abort"],n=Nt?ProgressEvent:Gt;return s.includes(t)?new n(t,{lengthComputable:!0,loaded:r?.loaded||0,total:r?.total||0}):new Oe(t,{target:e,currentTarget:e})}function Me(e,t){if(!(t in e))return null;if(Object.prototype.hasOwnProperty.call(e,t))return e;let s=Reflect.getPrototypeOf(e);return s?Me(s,t):null}function ge(e,t){return new Proxy(e,Kt(t))}function Kt(e){let{constructorCall:t,methodCall:r,getProperty:s,setProperty:n}=e,i={};return typeof t<"u"&&(i.construct=function(o,l,a){let c=Reflect.construct.bind(null,o,l,a);return t.call(a,l,c)}),i.set=function(o,l,a){let c=()=>{let u=Me(o,l)||o,p=Reflect.getOwnPropertyDescriptor(u,l);return typeof p?.set<"u"?(p.set.apply(o,[a]),!0):Reflect.defineProperty(u,l,{writable:!0,enumerable:!0,configurable:!0,value:a})};return typeof n<"u"?n.call(o,[l,a],c):c()},i.get=function(o,l,a){let c=()=>o[l],u=typeof s<"u"?s.call(o,[l,a],c):c();return typeof u=="function"?(...p)=>{let h=u.bind(o,...p);return typeof r<"u"?r.call(o,[l,p],h):h()}:u},i}function Vt(e){return ["application/xhtml+xml","application/xml","image/svg+xml","text/html","text/xml"].some(r=>e.startsWith(r))}function Yt(e){try{return JSON.parse(e)}catch{return null}}function Jt(e,t){let r=we(e.status)?null:t;return new Response(r,{status:e.status,statusText:e.statusText,headers:zt(e.getAllResponseHeaders())})}function zt(e){let t=new Headers,r=e.split(/[\r\n]+/);for(let s of r){if(s.trim()==="")continue;let[n,...i]=s.split(": "),o=i.join(": ");t.append(n,o);}return t}var me=Symbol("isMockedResponse"),Qt=X(),Zt=class{constructor(e,t){this.initialRequest=e,this.logger=t,this.method="GET",this.url=null,this.events=new Map,this.requestId=Le(),this.requestHeaders=new Headers,this.responseBuffer=new Uint8Array,this.request=ge(e,{setProperty:([r,s],n)=>{switch(r){case"ontimeout":{let i=r.slice(2);return this.request.addEventListener(i,s),n()}default:return n()}},methodCall:([r,s],n)=>{var i;switch(r){case"open":{let[o,l]=s;return typeof l>"u"?(this.method="GET",this.url=ve(o)):(this.method=o,this.url=ve(l)),this.logger=this.logger.extend(`${this.method} ${this.url.href}`),this.logger.info("open",this.method,this.url.href),n()}case"addEventListener":{let[o,l]=s;return this.registerEvent(o,l),this.logger.info("addEventListener",o,l),n()}case"setRequestHeader":{let[o,l]=s;return this.requestHeaders.set(o,l),this.logger.info("setRequestHeader",o,l),n()}case"send":{let[o]=s;o!=null&&(this.requestBody=typeof o=="string"?vt(o):o),this.request.addEventListener("load",()=>{if(typeof this.onResponse<"u"){let c=Jt(this.request,this.request.response);this.onResponse.call(this,{response:c,isMockedResponse:me in this.request,request:l,requestId:this.requestId});}});let l=this.toFetchApiRequest();(((i=this.onRequest)==null?void 0:i.call(this,{request:l,requestId:this.requestId}))||Promise.resolve()).finally(()=>{if(this.request.readyState<this.request.LOADING)return this.logger.info("request callback settled but request has not been handled (readystate %d), performing as-is...",this.request.readyState),Qt&&this.request.setRequestHeader("X-Request-Id",this.requestId),n()});break}default:return n()}}});}registerEvent(e,t){let s=(this.events.get(e)||[]).concat(t);this.events.set(e,s),this.logger.info('registered event "%s"',e,t);}respondWith(e){this.logger.info("responding with a mocked response: %d %s",e.status,e.statusText),E(this.request,me,!0),E(this.request,"status",e.status),E(this.request,"statusText",e.statusText),E(this.request,"responseURL",this.url.href),this.request.getResponseHeader=new Proxy(this.request.getResponseHeader,{apply:(s,n,i)=>{if(this.logger.info("getResponseHeader",i[0]),this.request.readyState<this.request.HEADERS_RECEIVED)return this.logger.info("headers not received yet, returning null"),null;let o=e.headers.get(i[0]);return this.logger.info('resolved response header "%s" to',i[0],o),o}}),this.request.getAllResponseHeaders=new Proxy(this.request.getAllResponseHeaders,{apply:()=>{if(this.logger.info("getAllResponseHeaders"),this.request.readyState<this.request.HEADERS_RECEIVED)return this.logger.info("headers not received yet, returning empty string"),"";let n=Array.from(e.headers.entries()).map(([i,o])=>`${i}: ${o}`).join(`\r
-`);return this.logger.info("resolved all response headers to",n),n}}),Object.defineProperties(this.request,{response:{enumerable:!0,configurable:!1,get:()=>this.response},responseText:{enumerable:!0,configurable:!1,get:()=>this.responseText},responseXML:{enumerable:!0,configurable:!1,get:()=>this.responseXML}});let t=e.headers.has("Content-Length")?Number(e.headers.get("Content-Length")):void 0;this.logger.info("calculated response body length",t),this.trigger("loadstart",{loaded:0,total:t}),this.setReadyState(this.request.HEADERS_RECEIVED),this.setReadyState(this.request.LOADING);let r=()=>{this.logger.info("finalizing the mocked response..."),this.setReadyState(this.request.DONE),this.trigger("load",{loaded:this.responseBuffer.byteLength,total:t}),this.trigger("loadend",{loaded:this.responseBuffer.byteLength,total:t});};if(e.body){this.logger.info("mocked response has body, streaming...");let s=e.body.getReader(),n=async()=>{let{value:i,done:o}=await s.read();if(o){this.logger.info("response body stream done!"),r();return}i&&(this.logger.info("read response body chunk:",i),this.responseBuffer=$t(this.responseBuffer,i),this.trigger("progress",{loaded:this.responseBuffer.byteLength,total:t})),n();};n();}else r();}responseBufferToText(){return yt(this.responseBuffer)}get response(){if(this.logger.info("getResponse (responseType: %s)",this.request.responseType),this.request.readyState!==this.request.DONE)return null;switch(this.request.responseType){case"json":{let e=Yt(this.responseBufferToText());return this.logger.info("resolved response JSON",e),e}case"arraybuffer":{let e=wt(this.responseBuffer);return this.logger.info("resolved response ArrayBuffer",e),e}case"blob":{let e=this.request.getResponseHeader("Content-Type")||"text/plain",t=new Blob([this.responseBufferToText()],{type:e});return this.logger.info("resolved response Blob (mime type: %s)",t,e),t}default:{let e=this.responseBufferToText();return this.logger.info('resolving "%s" response type as text',this.request.responseType,e),e}}}get responseText(){if(w(this.request.responseType===""||this.request.responseType==="text","InvalidStateError: The object is in invalid state."),this.request.readyState!==this.request.LOADING&&this.request.readyState!==this.request.DONE)return "";let e=this.responseBufferToText();return this.logger.info('getResponseText: "%s"',e),e}get responseXML(){if(w(this.request.responseType===""||this.request.responseType==="document","InvalidStateError: The object is in invalid state."),this.request.readyState!==this.request.DONE)return null;let e=this.request.getResponseHeader("Content-Type")||"";return typeof DOMParser>"u"?(console.warn("Cannot retrieve XMLHttpRequest response body as XML: DOMParser is not defined. You are likely using an environment that is not browser or does not polyfill browser globals correctly."),null):Vt(e)?new DOMParser().parseFromString(this.responseBufferToText(),e):null}errorWith(e){this.logger.info("responding with an error"),this.setReadyState(this.request.DONE),this.trigger("error"),this.trigger("loadend");}setReadyState(e){if(this.logger.info("setReadyState: %d -> %d",this.request.readyState,e),this.request.readyState===e){this.logger.info("ready state identical, skipping transition...");return}E(this.request,"readyState",e),this.logger.info("set readyState to: %d",e),e!==this.request.UNSENT&&(this.logger.info('triggerring "readystatechange" event...'),this.trigger("readystatechange"));}trigger(e,t){let r=this.request[`on${e}`],s=Xt(this.request,e,t);this.logger.info('trigger "%s"',e,t||""),typeof r=="function"&&(this.logger.info('found a direct "%s" callback, calling...',e),r.call(this.request,s));for(let[n,i]of this.events)n===e&&(this.logger.info('found %d listener(s) for "%s" event, calling...',i.length,e),i.forEach(o=>o.call(this.request,s)));}toFetchApiRequest(){this.logger.info("converting request to a Fetch API Request...");let e=new Request(this.url.href,{method:this.method,headers:this.requestHeaders,credentials:this.request.withCredentials?"include":"same-origin",body:["GET","HEAD"].includes(this.method)?null:this.requestBody}),t=ge(e.headers,{methodCall:([r,s],n)=>{switch(r){case"append":case"set":{let[i,o]=s;this.request.setRequestHeader(i,o);break}case"delete":{let[i]=s;console.warn(`XMLHttpRequest: Cannot remove a "${i}" header from the Fetch API representation of the "${e.method} ${e.url}" request. XMLHttpRequest headers cannot be removed.`);break}}return n()}});return E(e,"headers",t),this.logger.info("converted request to a Fetch API Request!",e),e}};function ve(e){return typeof location>"u"?new URL(e):new URL(e.toString(),location.href)}function E(e,t,r){Reflect.defineProperty(e,t,{writable:!0,enumerable:!0,value:r});}function er({emitter:e,logger:t}){return new Proxy(globalThis.XMLHttpRequest,{construct(s,n,i){t.info("constructed new XMLHttpRequest");let o=Reflect.construct(s,n,i),l=Object.getOwnPropertyDescriptors(s.prototype);for(let c in l)Reflect.defineProperty(o,c,l[c]);let a=new Zt(o,t);return a.onRequest=async function({request:c,requestId:u}){let{interactiveRequest:p,requestController:h}=qe(c);this.logger.info("awaiting mocked response..."),e.once("request",({requestId:m})=>{m===u&&h.responsePromise.state==="pending"&&h.respondWith(void 0);});let g=await K(async()=>{this.logger.info('emitting the "request" event for %s listener(s)...',e.listenerCount("request")),await Se(e,"request",{request:p,requestId:u}),this.logger.info('all "request" listeners settled!');let m=await h.responsePromise;return this.logger.info("event.respondWith called with:",m),m});if(g.error){this.logger.info("request listener threw an exception, aborting request...",g.error),a.errorWith(g.error);return}let f=g.data;if(typeof f<"u"){if(this.logger.info("received mocked response: %d %s",f.status,f.statusText),f.type==="error"){this.logger.info("received a network error response, rejecting the request promise..."),a.errorWith(new TypeError("Network error"));return}return a.respondWith(f)}this.logger.info("no mocked response received, performing request as-is...");},a.onResponse=async function({response:c,isMockedResponse:u,request:p,requestId:h}){this.logger.info('emitting the "response" event for %s listener(s)...',e.listenerCount("response")),e.emit("response",{response:c,isMockedResponse:u,request:p,requestId:h});},a.request}})}var Te=class extends V{constructor(){super(Te.interceptorSymbol);}checkEnvironment(){return typeof globalThis.XMLHttpRequest<"u"}setup(){let e=this.logger.extend("setup");e.info('patching "XMLHttpRequest" module...');let t=globalThis.XMLHttpRequest;w(!t[L],'Failed to patch the "XMLHttpRequest" module: already patched.'),globalThis.XMLHttpRequest=er({emitter:this.emitter,logger:this.logger}),e.info('native "XMLHttpRequest" module patched!',globalThis.XMLHttpRequest.name),Object.defineProperty(globalThis.XMLHttpRequest,L,{enumerable:!0,configurable:!0,value:!0}),this.subscriptions.push(()=>{Object.defineProperty(globalThis.XMLHttpRequest,L,{value:void 0}),globalThis.XMLHttpRequest=t,e.info('native "XMLHttpRequest" module restored!',globalThis.XMLHttpRequest.name);});}},Ce=Te;Ce.interceptorSymbol=Symbol("xhr");function tr(e,t){let r=new N({name:"fallback",interceptors:[new Pe,new Ce]});return r.on("request",async({request:s,requestId:n})=>{let i=s.clone(),o=await T(s,n,e.getRequestHandlers(),t,e.emitter,{onMockedResponse(l,{handler:a,parsedResult:c}){t.quiet||e.emitter.once("response:mocked",({response:u})=>{a.log({request:i,response:u,parsedResult:c});});}});o&&s.respondWith(o);}),r.on("response",({response:s,isMockedResponse:n,request:i,requestId:o})=>{e.emitter.emit(n?"response:mocked":"response:bypass",{response:s,request:i,requestId:o});}),r.apply(),r}function rr(e){return async function(r){e.fallbackInterceptor=tr(e,r),ye({message:"Mocking enabled (fallback mode).",quiet:r.quiet});}}function sr(e){return function(){e.fallbackInterceptor?.dispose(),xe({quiet:e.startOptions?.quiet});}}function nr(){try{let e=new ReadableStream({start:r=>r.close()});return new MessageChannel().port1.postMessage(e,[e]),!0}catch{return !1}}var or=class extends A{context;startHandler=null;stopHandler=null;listeners;constructor(...e){super(...e),w(!X(),d.formatMessage("Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead.")),this.listeners=[],this.context=this.createWorkerContext();}createWorkerContext(){let e={isMockingEnabled:!1,startOptions:null,worker:null,getRequestHandlers:()=>this.handlersController.currentHandlers(),registration:null,requests:new Map,emitter:this.emitter,workerChannel:{on:(t,r)=>{this.context.events.addListener(navigator.serviceWorker,"message",s=>{if(s.source!==this.context.worker)return;let n=s.data;n&&n.type===t&&r(s,n);});},send:t=>{this.context.worker?.postMessage(t);}},events:{addListener:(t,r,s)=>(t.addEventListener(r,s),this.listeners.push({eventType:r,target:t,callback:s}),()=>{t.removeEventListener(r,s);}),removeAllListeners:()=>{for(let{target:t,eventType:r,callback:s}of this.listeners)t.removeEventListener(r,s);this.listeners=[];},once:t=>{let r=[];return new Promise((s,n)=>{let i=o=>{try{let l=o.data;l.type===t&&s(l);}catch(l){n(l);}};r.push(this.context.events.addListener(navigator.serviceWorker,"message",i),this.context.events.addListener(navigator.serviceWorker,"messageerror",n));}).finally(()=>{r.forEach(s=>s());})}},supports:{serviceWorkerApi:!("serviceWorker"in navigator)||location.protocol==="file:",readableStreamTransfer:nr()}};return this.startHandler=e.supports.serviceWorkerApi?rr(e):Wt(e),this.stopHandler=e.supports.serviceWorkerApi?sr(e):Ut(e),e}async start(e={}){return e.waitUntilReady===!0&&d.warn('The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.'),this.context.startOptions=D(Ht,e),await this.startHandler(this.context.startOptions,e)}stop(){super.dispose(),this.context.events.removeAllListeners(),this.context.emitter.removeAllListeners(),this.stopHandler();}};function Ie(...e){return new or(...e)}var y,Ae,We=[],Ps=async(e,t=[])=>{Ae=e,We=t;},ir=e=>{if(y){if(window.__MSW_STORYBOOK__)return;if(y.resetHandlers(...We),e){if(Array.isArray(e)&&e.length>0)y.use(...e);else if("handlers"in e&&e.handlers){let t=Object.values(e.handlers).filter(Boolean).reduce((r,s)=>r.concat(s),[]);t.length>0&&y.use(...t);}}}},Os=async e=>{let{parameters:{msw:t},viewMode:r}=e;if(!(!t||window.__MSW_STORYBOOK__&&window.__MSW_STORYBOOK__.worker))return r==="docs"&&window.__MSW_STORYBOOK__.worker?y=typeof global.process>"u"&&window.__MSW_STORYBOOK__.worker:y=typeof global.process>"u"&&Ie(),await y.start(Ae),ir(t),y&&(window.__MSW_STORYBOOK__=window.__MSW_STORYBOOK__||{},window.__MSW_STORYBOOK__.worker=y),{}};
+Please consider using a custom "serviceWorker.url" option to point to the actual worker script location, or a custom "findWorker" option to resolve the Service Worker registration manually. More details: https://mswjs.io/docs/api/setup-worker/start`,
+          options.serviceWorker.url,
+          location.host
+        );
+        throw new Error(missingWorkerMessage);
+      }
+      context.worker = worker2;
+      context.registration = registration;
+      context.events.addListener(window, "beforeunload", () => {
+        if (worker2.state !== "redundant") {
+          context.workerChannel.send("CLIENT_CLOSED");
+        }
+        window.clearInterval(context.keepAliveInterval);
+      });
+      await checkWorkerIntegrity(context).catch((error22) => {
+        devUtils.error(
+          "Error while checking the worker script integrity. Please report this on GitHub (https://github.com/mswjs/msw/issues), including the original error below."
+        );
+        console.error(error22);
+      });
+      context.keepAliveInterval = window.setInterval(
+        () => context.workerChannel.send("KEEPALIVE_REQUEST"),
+        5e3
+      );
+      validateWorkerScope(registration, context.startOptions);
+      return registration;
+    };
+    const workerRegistration = startWorkerInstance().then(
+      async (registration) => {
+        const pendingInstance = registration.installing || registration.waiting;
+        if (pendingInstance) {
+          await new Promise((resolve) => {
+            pendingInstance.addEventListener("statechange", () => {
+              if (pendingInstance.state === "activated") {
+                return resolve();
+              }
+            });
+          });
+        }
+        await enableMocking(context, options).catch((error22) => {
+          throw new Error(`Failed to enable mocking: ${error22?.message}`);
+        });
+        return registration;
+      }
+    );
+    return workerRegistration;
+  };
+};
+function printStopMessage(args = {}) {
+  if (args.quiet) {
+    return;
+  }
+  console.log(
+    `%c${devUtils.formatMessage("Mocking disabled.")}`,
+    "color:orangered;font-weight:bold;"
+  );
+}
+var createStop = (context) => {
+  return function stop() {
+    if (!context.isMockingEnabled) {
+      devUtils.warn(
+        'Found a redundant "worker.stop()" call. Note that stopping the worker while mocking already stopped has no effect. Consider removing this "worker.stop()" call.'
+      );
+      return;
+    }
+    context.workerChannel.send("MOCK_DEACTIVATE");
+    context.isMockingEnabled = false;
+    window.clearInterval(context.keepAliveInterval);
+    printStopMessage({ quiet: context.startOptions?.quiet });
+  };
+};
+var DEFAULT_START_OPTIONS = {
+  serviceWorker: {
+    url: "/mockServiceWorker.js",
+    options: null
+  },
+  quiet: false,
+  waitUntilReady: true,
+  onUnhandledRequest: "warn",
+  findWorker(scriptURL, mockServiceWorkerUrl) {
+    return scriptURL === mockServiceWorkerUrl;
+  }
+};
+function createDeferredExecutor() {
+  const executor = (resolve, reject) => {
+    executor.state = "pending";
+    executor.resolve = (data) => {
+      if (executor.state !== "pending") {
+        return;
+      }
+      executor.result = data;
+      const onFulfilled = (value) => {
+        executor.state = "fulfilled";
+        return value;
+      };
+      return resolve(
+        data instanceof Promise ? data : Promise.resolve(data).then(onFulfilled)
+      );
+    };
+    executor.reject = (reason) => {
+      if (executor.state !== "pending") {
+        return;
+      }
+      queueMicrotask(() => {
+        executor.state = "rejected";
+      });
+      return reject(executor.rejectionReason = reason);
+    };
+  };
+  return executor;
+}
+var DeferredPromise = class extends Promise {
+  #executor;
+  resolve;
+  reject;
+  constructor(executor = null) {
+    const deferredExecutor = createDeferredExecutor();
+    super((originalResolve, originalReject) => {
+      deferredExecutor(originalResolve, originalReject);
+      executor?.(deferredExecutor.resolve, deferredExecutor.reject);
+    });
+    this.#executor = deferredExecutor;
+    this.resolve = this.#executor.resolve;
+    this.reject = this.#executor.reject;
+  }
+  get state() {
+    return this.#executor.state;
+  }
+  get rejectionReason() {
+    return this.#executor.rejectionReason;
+  }
+  then(onFulfilled, onRejected) {
+    return this.#decorate(super.then(onFulfilled, onRejected));
+  }
+  catch(onRejected) {
+    return this.#decorate(super.catch(onRejected));
+  }
+  finally(onfinally) {
+    return this.#decorate(super.finally(onfinally));
+  }
+  #decorate(promise) {
+    return Object.defineProperties(promise, {
+      resolve: { configurable: true, value: this.resolve },
+      reject: { configurable: true, value: this.reject }
+    });
+  }
+};
+function uuidv4() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == "x" ? r : r & 3 | 8;
+    return v.toString(16);
+  });
+}
+var RequestController = class {
+  constructor(request) {
+    this.request = request;
+    this.responsePromise = new DeferredPromise();
+  }
+  respondWith(response) {
+    invariant2(
+      this.responsePromise.state === "pending",
+      'Failed to respond to "%s %s" request: the "request" event has already been responded to.',
+      this.request.method,
+      this.request.url
+    );
+    this.responsePromise.resolve(response);
+  }
+};
+function toInteractiveRequest(request) {
+  const requestController = new RequestController(request);
+  Reflect.set(
+    request,
+    "respondWith",
+    requestController.respondWith.bind(requestController)
+  );
+  return {
+    interactiveRequest: request,
+    requestController
+  };
+}
+async function emitAsync(emitter, eventName, ...data) {
+  const listners = emitter.listeners(eventName);
+  if (listners.length === 0) {
+    return;
+  }
+  for (const listener of listners) {
+    await listener.apply(emitter, data);
+  }
+}
+function isPropertyAccessible2(obj, key) {
+  try {
+    obj[key];
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function canParseUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+var _FetchInterceptor = class extends Interceptor {
+  constructor() {
+    super(_FetchInterceptor.symbol);
+  }
+  checkEnvironment() {
+    return typeof globalThis !== "undefined" && typeof globalThis.fetch !== "undefined";
+  }
+  setup() {
+    const pureFetch = globalThis.fetch;
+    invariant2(
+      !pureFetch[IS_PATCHED_MODULE],
+      'Failed to patch the "fetch" module: already patched.'
+    );
+    globalThis.fetch = async (input, init) => {
+      var _a;
+      const requestId = uuidv4();
+      const resolvedInput = typeof input === "string" && typeof location !== "undefined" && !canParseUrl(input) ? new URL(input, location.origin) : input;
+      const request = new Request(resolvedInput, init);
+      this.logger.info("[%s] %s", request.method, request.url);
+      const { interactiveRequest, requestController } = toInteractiveRequest(request);
+      this.logger.info(
+        'emitting the "request" event for %d listener(s)...',
+        this.emitter.listenerCount("request")
+      );
+      this.emitter.once("request", ({ requestId: pendingRequestId }) => {
+        if (pendingRequestId !== requestId) {
+          return;
+        }
+        if (requestController.responsePromise.state === "pending") {
+          requestController.responsePromise.resolve(void 0);
+        }
+      });
+      this.logger.info("awaiting for the mocked response...");
+      const signal = interactiveRequest.signal;
+      const requestAborted = new DeferredPromise();
+      if (signal) {
+        signal.addEventListener(
+          "abort",
+          () => {
+            requestAborted.reject(signal.reason);
+          },
+          { once: true }
+        );
+      }
+      const resolverResult = await until2(async () => {
+        const listenersFinished = emitAsync(this.emitter, "request", {
+          request: interactiveRequest,
+          requestId
+        });
+        await Promise.race([
+          requestAborted,
+          // Put the listeners invocation Promise in the same race condition
+          // with the request abort Promise because otherwise awaiting the listeners
+          // would always yield some response (or undefined).
+          listenersFinished,
+          requestController.responsePromise
+        ]);
+        this.logger.info("all request listeners have been resolved!");
+        const mockedResponse2 = await requestController.responsePromise;
+        this.logger.info("event.respondWith called with:", mockedResponse2);
+        return mockedResponse2;
+      });
+      if (requestAborted.state === "rejected") {
+        return Promise.reject(requestAborted.rejectionReason);
+      }
+      if (resolverResult.error) {
+        return Promise.reject(createNetworkError(resolverResult.error));
+      }
+      const mockedResponse = resolverResult.data;
+      if (mockedResponse && !((_a = request.signal) == null ? void 0 : _a.aborted)) {
+        this.logger.info("received mocked response:", mockedResponse);
+        if (isPropertyAccessible2(mockedResponse, "type") && mockedResponse.type === "error") {
+          this.logger.info(
+            "received a network error response, rejecting the request promise..."
+          );
+          return Promise.reject(createNetworkError(mockedResponse));
+        }
+        const responseClone = mockedResponse.clone();
+        this.emitter.emit("response", {
+          response: responseClone,
+          isMockedResponse: true,
+          request: interactiveRequest,
+          requestId
+        });
+        Object.defineProperty(mockedResponse, "url", {
+          writable: false,
+          enumerable: true,
+          configurable: false,
+          value: request.url
+        });
+        return mockedResponse;
+      }
+      this.logger.info("no mocked response received!");
+      return pureFetch(request).then((response) => {
+        const responseClone = response.clone();
+        this.logger.info("original fetch performed", responseClone);
+        this.emitter.emit("response", {
+          response: responseClone,
+          isMockedResponse: false,
+          request: interactiveRequest,
+          requestId
+        });
+        return response;
+      });
+    };
+    Object.defineProperty(globalThis.fetch, IS_PATCHED_MODULE, {
+      enumerable: true,
+      configurable: true,
+      value: true
+    });
+    this.subscriptions.push(() => {
+      Object.defineProperty(globalThis.fetch, IS_PATCHED_MODULE, {
+        value: void 0
+      });
+      globalThis.fetch = pureFetch;
+      this.logger.info(
+        'restored native "globalThis.fetch"!',
+        globalThis.fetch.name
+      );
+    });
+  }
+};
+var FetchInterceptor = _FetchInterceptor;
+FetchInterceptor.symbol = Symbol("fetch");
+function createNetworkError(cause) {
+  return Object.assign(new TypeError("Failed to fetch"), {
+    cause
+  });
+}
+function concatArrayBuffer(left, right) {
+  const result = new Uint8Array(left.byteLength + right.byteLength);
+  result.set(left, 0);
+  result.set(right, left.byteLength);
+  return result;
+}
+var EventPolyfill = class {
+  constructor(type, options) {
+    this.AT_TARGET = 0;
+    this.BUBBLING_PHASE = 0;
+    this.CAPTURING_PHASE = 0;
+    this.NONE = 0;
+    this.type = "";
+    this.srcElement = null;
+    this.currentTarget = null;
+    this.eventPhase = 0;
+    this.isTrusted = true;
+    this.composed = false;
+    this.cancelable = true;
+    this.defaultPrevented = false;
+    this.bubbles = true;
+    this.lengthComputable = true;
+    this.loaded = 0;
+    this.total = 0;
+    this.cancelBubble = false;
+    this.returnValue = true;
+    this.type = type;
+    this.target = (options == null ? void 0 : options.target) || null;
+    this.currentTarget = (options == null ? void 0 : options.currentTarget) || null;
+    this.timeStamp = Date.now();
+  }
+  composedPath() {
+    return [];
+  }
+  initEvent(type, bubbles, cancelable) {
+    this.type = type;
+    this.bubbles = !!bubbles;
+    this.cancelable = !!cancelable;
+  }
+  preventDefault() {
+    this.defaultPrevented = true;
+  }
+  stopPropagation() {
+  }
+  stopImmediatePropagation() {
+  }
+};
+var ProgressEventPolyfill = class extends EventPolyfill {
+  constructor(type, init) {
+    super(type);
+    this.lengthComputable = (init == null ? void 0 : init.lengthComputable) || false;
+    this.composed = (init == null ? void 0 : init.composed) || false;
+    this.loaded = (init == null ? void 0 : init.loaded) || 0;
+    this.total = (init == null ? void 0 : init.total) || 0;
+  }
+};
+var SUPPORTS_PROGRESS_EVENT = typeof ProgressEvent !== "undefined";
+function createEvent(target, type, init) {
+  const progressEvents = [
+    "error",
+    "progress",
+    "loadstart",
+    "loadend",
+    "load",
+    "timeout",
+    "abort"
+  ];
+  const ProgressEventClass = SUPPORTS_PROGRESS_EVENT ? ProgressEvent : ProgressEventPolyfill;
+  const event = progressEvents.includes(type) ? new ProgressEventClass(type, {
+    lengthComputable: true,
+    loaded: (init == null ? void 0 : init.loaded) || 0,
+    total: (init == null ? void 0 : init.total) || 0
+  }) : new EventPolyfill(type, {
+    target,
+    currentTarget: target
+  });
+  return event;
+}
+function findPropertySource(target, propertyName) {
+  if (!(propertyName in target)) {
+    return null;
+  }
+  const hasProperty = Object.prototype.hasOwnProperty.call(target, propertyName);
+  if (hasProperty) {
+    return target;
+  }
+  const prototype = Reflect.getPrototypeOf(target);
+  return prototype ? findPropertySource(prototype, propertyName) : null;
+}
+function createProxy(target, options) {
+  const proxy = new Proxy(target, optionsToProxyHandler(options));
+  return proxy;
+}
+function optionsToProxyHandler(options) {
+  const { constructorCall, methodCall, getProperty, setProperty } = options;
+  const handler = {};
+  if (typeof constructorCall !== "undefined") {
+    handler.construct = function(target, args, newTarget) {
+      const next = Reflect.construct.bind(null, target, args, newTarget);
+      return constructorCall.call(newTarget, args, next);
+    };
+  }
+  handler.set = function(target, propertyName, nextValue) {
+    const next = () => {
+      const propertySource = findPropertySource(target, propertyName) || target;
+      const ownDescriptors = Reflect.getOwnPropertyDescriptor(
+        propertySource,
+        propertyName
+      );
+      if (typeof (ownDescriptors == null ? void 0 : ownDescriptors.set) !== "undefined") {
+        ownDescriptors.set.apply(target, [nextValue]);
+        return true;
+      }
+      return Reflect.defineProperty(propertySource, propertyName, {
+        writable: true,
+        enumerable: true,
+        configurable: true,
+        value: nextValue
+      });
+    };
+    if (typeof setProperty !== "undefined") {
+      return setProperty.call(target, [propertyName, nextValue], next);
+    }
+    return next();
+  };
+  handler.get = function(target, propertyName, receiver) {
+    const next = () => target[propertyName];
+    const value = typeof getProperty !== "undefined" ? getProperty.call(target, [propertyName, receiver], next) : next();
+    if (typeof value === "function") {
+      return (...args) => {
+        const next2 = value.bind(target, ...args);
+        if (typeof methodCall !== "undefined") {
+          return methodCall.call(target, [propertyName, args], next2);
+        }
+        return next2();
+      };
+    }
+    return value;
+  };
+  return handler;
+}
+function isDomParserSupportedType(type) {
+  const supportedTypes = [
+    "application/xhtml+xml",
+    "application/xml",
+    "image/svg+xml",
+    "text/html",
+    "text/xml"
+  ];
+  return supportedTypes.some((supportedType) => {
+    return type.startsWith(supportedType);
+  });
+}
+function parseJson(data) {
+  try {
+    const json = JSON.parse(data);
+    return json;
+  } catch (_) {
+    return null;
+  }
+}
+function createResponse(request, body) {
+  const responseBodyOrNull = isResponseWithoutBody(request.status) ? null : body;
+  return new Response(responseBodyOrNull, {
+    status: request.status,
+    statusText: request.statusText,
+    headers: createHeadersFromXMLHttpReqestHeaders(
+      request.getAllResponseHeaders()
+    )
+  });
+}
+function createHeadersFromXMLHttpReqestHeaders(headersString) {
+  const headers = new Headers();
+  const lines = headersString.split(/[\r\n]+/);
+  for (const line of lines) {
+    if (line.trim() === "") {
+      continue;
+    }
+    const [name, ...parts] = line.split(": ");
+    const value = parts.join(": ");
+    headers.append(name, value);
+  }
+  return headers;
+}
+var IS_MOCKED_RESPONSE = Symbol("isMockedResponse");
+var IS_NODE2 = isNodeProcess();
+var XMLHttpRequestController = class {
+  constructor(initialRequest, logger) {
+    this.initialRequest = initialRequest;
+    this.logger = logger;
+    this.method = "GET";
+    this.url = null;
+    this.events = /* @__PURE__ */ new Map();
+    this.requestId = uuidv4();
+    this.requestHeaders = new Headers();
+    this.responseBuffer = new Uint8Array();
+    this.request = createProxy(initialRequest, {
+      setProperty: ([propertyName, nextValue], invoke) => {
+        switch (propertyName) {
+          case "ontimeout": {
+            const eventName = propertyName.slice(
+              2
+            );
+            this.request.addEventListener(eventName, nextValue);
+            return invoke();
+          }
+          default: {
+            return invoke();
+          }
+        }
+      },
+      methodCall: ([methodName, args], invoke) => {
+        var _a;
+        switch (methodName) {
+          case "open": {
+            const [method, url] = args;
+            if (typeof url === "undefined") {
+              this.method = "GET";
+              this.url = toAbsoluteUrl(method);
+            } else {
+              this.method = method;
+              this.url = toAbsoluteUrl(url);
+            }
+            this.logger = this.logger.extend(`${this.method} ${this.url.href}`);
+            this.logger.info("open", this.method, this.url.href);
+            return invoke();
+          }
+          case "addEventListener": {
+            const [eventName, listener] = args;
+            this.registerEvent(eventName, listener);
+            this.logger.info("addEventListener", eventName, listener);
+            return invoke();
+          }
+          case "setRequestHeader": {
+            const [name, value] = args;
+            this.requestHeaders.set(name, value);
+            this.logger.info("setRequestHeader", name, value);
+            return invoke();
+          }
+          case "send": {
+            const [body] = args;
+            if (body != null) {
+              this.requestBody = typeof body === "string" ? encodeBuffer(body) : body;
+            }
+            this.request.addEventListener("load", () => {
+              if (typeof this.onResponse !== "undefined") {
+                const fetchResponse = createResponse(
+                  this.request,
+                  /**
+                   * The `response` property is the right way to read
+                   * the ambiguous response body, as the request's "responseType" may differ.
+                   * @see https://xhr.spec.whatwg.org/#the-response-attribute
+                   */
+                  this.request.response
+                );
+                this.onResponse.call(this, {
+                  response: fetchResponse,
+                  isMockedResponse: IS_MOCKED_RESPONSE in this.request,
+                  request: fetchRequest,
+                  requestId: this.requestId
+                });
+              }
+            });
+            const fetchRequest = this.toFetchApiRequest();
+            const onceRequestSettled = ((_a = this.onRequest) == null ? void 0 : _a.call(this, {
+              request: fetchRequest,
+              requestId: this.requestId
+            })) || Promise.resolve();
+            onceRequestSettled.finally(() => {
+              if (this.request.readyState < this.request.LOADING) {
+                this.logger.info(
+                  "request callback settled but request has not been handled (readystate %d), performing as-is...",
+                  this.request.readyState
+                );
+                if (IS_NODE2) {
+                  this.request.setRequestHeader("X-Request-Id", this.requestId);
+                }
+                return invoke();
+              }
+            });
+            break;
+          }
+          default: {
+            return invoke();
+          }
+        }
+      }
+    });
+  }
+  registerEvent(eventName, listener) {
+    const prevEvents = this.events.get(eventName) || [];
+    const nextEvents = prevEvents.concat(listener);
+    this.events.set(eventName, nextEvents);
+    this.logger.info('registered event "%s"', eventName, listener);
+  }
+  /**
+   * Responds to the current request with the given
+   * Fetch API `Response` instance.
+   */
+  respondWith(response) {
+    this.logger.info(
+      "responding with a mocked response: %d %s",
+      response.status,
+      response.statusText
+    );
+    define(this.request, IS_MOCKED_RESPONSE, true);
+    define(this.request, "status", response.status);
+    define(this.request, "statusText", response.statusText);
+    define(this.request, "responseURL", this.url.href);
+    this.request.getResponseHeader = new Proxy(this.request.getResponseHeader, {
+      apply: (_, __, args) => {
+        this.logger.info("getResponseHeader", args[0]);
+        if (this.request.readyState < this.request.HEADERS_RECEIVED) {
+          this.logger.info("headers not received yet, returning null");
+          return null;
+        }
+        const headerValue = response.headers.get(args[0]);
+        this.logger.info(
+          'resolved response header "%s" to',
+          args[0],
+          headerValue
+        );
+        return headerValue;
+      }
+    });
+    this.request.getAllResponseHeaders = new Proxy(
+      this.request.getAllResponseHeaders,
+      {
+        apply: () => {
+          this.logger.info("getAllResponseHeaders");
+          if (this.request.readyState < this.request.HEADERS_RECEIVED) {
+            this.logger.info("headers not received yet, returning empty string");
+            return "";
+          }
+          const headersList = Array.from(response.headers.entries());
+          const allHeaders = headersList.map(([headerName, headerValue]) => {
+            return `${headerName}: ${headerValue}`;
+          }).join("\r\n");
+          this.logger.info("resolved all response headers to", allHeaders);
+          return allHeaders;
+        }
+      }
+    );
+    Object.defineProperties(this.request, {
+      response: {
+        enumerable: true,
+        configurable: false,
+        get: () => this.response
+      },
+      responseText: {
+        enumerable: true,
+        configurable: false,
+        get: () => this.responseText
+      },
+      responseXML: {
+        enumerable: true,
+        configurable: false,
+        get: () => this.responseXML
+      }
+    });
+    const totalResponseBodyLength = response.headers.has("Content-Length") ? Number(response.headers.get("Content-Length")) : (
+      /**
+       * @todo Infer the response body length from the response body.
+       */
+      void 0
+    );
+    this.logger.info("calculated response body length", totalResponseBodyLength);
+    this.trigger("loadstart", {
+      loaded: 0,
+      total: totalResponseBodyLength
+    });
+    this.setReadyState(this.request.HEADERS_RECEIVED);
+    this.setReadyState(this.request.LOADING);
+    const finalizeResponse = () => {
+      this.logger.info("finalizing the mocked response...");
+      this.setReadyState(this.request.DONE);
+      this.trigger("load", {
+        loaded: this.responseBuffer.byteLength,
+        total: totalResponseBodyLength
+      });
+      this.trigger("loadend", {
+        loaded: this.responseBuffer.byteLength,
+        total: totalResponseBodyLength
+      });
+    };
+    if (response.body) {
+      this.logger.info("mocked response has body, streaming...");
+      const reader = response.body.getReader();
+      const readNextResponseBodyChunk = async () => {
+        const { value, done } = await reader.read();
+        if (done) {
+          this.logger.info("response body stream done!");
+          finalizeResponse();
+          return;
+        }
+        if (value) {
+          this.logger.info("read response body chunk:", value);
+          this.responseBuffer = concatArrayBuffer(this.responseBuffer, value);
+          this.trigger("progress", {
+            loaded: this.responseBuffer.byteLength,
+            total: totalResponseBodyLength
+          });
+        }
+        readNextResponseBodyChunk();
+      };
+      readNextResponseBodyChunk();
+    } else {
+      finalizeResponse();
+    }
+  }
+  responseBufferToText() {
+    return decodeBuffer(this.responseBuffer);
+  }
+  get response() {
+    this.logger.info(
+      "getResponse (responseType: %s)",
+      this.request.responseType
+    );
+    if (this.request.readyState !== this.request.DONE) {
+      return null;
+    }
+    switch (this.request.responseType) {
+      case "json": {
+        const responseJson = parseJson(this.responseBufferToText());
+        this.logger.info("resolved response JSON", responseJson);
+        return responseJson;
+      }
+      case "arraybuffer": {
+        const arrayBuffer = toArrayBuffer(this.responseBuffer);
+        this.logger.info("resolved response ArrayBuffer", arrayBuffer);
+        return arrayBuffer;
+      }
+      case "blob": {
+        const mimeType = this.request.getResponseHeader("Content-Type") || "text/plain";
+        const responseBlob = new Blob([this.responseBufferToText()], {
+          type: mimeType
+        });
+        this.logger.info(
+          "resolved response Blob (mime type: %s)",
+          responseBlob,
+          mimeType
+        );
+        return responseBlob;
+      }
+      default: {
+        const responseText = this.responseBufferToText();
+        this.logger.info(
+          'resolving "%s" response type as text',
+          this.request.responseType,
+          responseText
+        );
+        return responseText;
+      }
+    }
+  }
+  get responseText() {
+    invariant2(
+      this.request.responseType === "" || this.request.responseType === "text",
+      "InvalidStateError: The object is in invalid state."
+    );
+    if (this.request.readyState !== this.request.LOADING && this.request.readyState !== this.request.DONE) {
+      return "";
+    }
+    const responseText = this.responseBufferToText();
+    this.logger.info('getResponseText: "%s"', responseText);
+    return responseText;
+  }
+  get responseXML() {
+    invariant2(
+      this.request.responseType === "" || this.request.responseType === "document",
+      "InvalidStateError: The object is in invalid state."
+    );
+    if (this.request.readyState !== this.request.DONE) {
+      return null;
+    }
+    const contentType = this.request.getResponseHeader("Content-Type") || "";
+    if (typeof DOMParser === "undefined") {
+      console.warn(
+        "Cannot retrieve XMLHttpRequest response body as XML: DOMParser is not defined. You are likely using an environment that is not browser or does not polyfill browser globals correctly."
+      );
+      return null;
+    }
+    if (isDomParserSupportedType(contentType)) {
+      return new DOMParser().parseFromString(
+        this.responseBufferToText(),
+        contentType
+      );
+    }
+    return null;
+  }
+  errorWith(error22) {
+    this.logger.info("responding with an error");
+    this.setReadyState(this.request.DONE);
+    this.trigger("error");
+    this.trigger("loadend");
+  }
+  /**
+   * Transitions this request's `readyState` to the given one.
+   */
+  setReadyState(nextReadyState) {
+    this.logger.info(
+      "setReadyState: %d -> %d",
+      this.request.readyState,
+      nextReadyState
+    );
+    if (this.request.readyState === nextReadyState) {
+      this.logger.info("ready state identical, skipping transition...");
+      return;
+    }
+    define(this.request, "readyState", nextReadyState);
+    this.logger.info("set readyState to: %d", nextReadyState);
+    if (nextReadyState !== this.request.UNSENT) {
+      this.logger.info('triggerring "readystatechange" event...');
+      this.trigger("readystatechange");
+    }
+  }
+  /**
+   * Triggers given event on the `XMLHttpRequest` instance.
+   */
+  trigger(eventName, options) {
+    const callback = this.request[`on${eventName}`];
+    const event = createEvent(this.request, eventName, options);
+    this.logger.info('trigger "%s"', eventName, options || "");
+    if (typeof callback === "function") {
+      this.logger.info('found a direct "%s" callback, calling...', eventName);
+      callback.call(this.request, event);
+    }
+    for (const [registeredEventName, listeners] of this.events) {
+      if (registeredEventName === eventName) {
+        this.logger.info(
+          'found %d listener(s) for "%s" event, calling...',
+          listeners.length,
+          eventName
+        );
+        listeners.forEach((listener) => listener.call(this.request, event));
+      }
+    }
+  }
+  /**
+   * Converts this `XMLHttpRequest` instance into a Fetch API `Request` instance.
+   */
+  toFetchApiRequest() {
+    this.logger.info("converting request to a Fetch API Request...");
+    const fetchRequest = new Request(this.url.href, {
+      method: this.method,
+      headers: this.requestHeaders,
+      /**
+       * @see https://xhr.spec.whatwg.org/#cross-origin-credentials
+       */
+      credentials: this.request.withCredentials ? "include" : "same-origin",
+      body: ["GET", "HEAD"].includes(this.method) ? null : this.requestBody
+    });
+    const proxyHeaders = createProxy(fetchRequest.headers, {
+      methodCall: ([methodName, args], invoke) => {
+        switch (methodName) {
+          case "append":
+          case "set": {
+            const [headerName, headerValue] = args;
+            this.request.setRequestHeader(headerName, headerValue);
+            break;
+          }
+          case "delete": {
+            const [headerName] = args;
+            console.warn(
+              `XMLHttpRequest: Cannot remove a "${headerName}" header from the Fetch API representation of the "${fetchRequest.method} ${fetchRequest.url}" request. XMLHttpRequest headers cannot be removed.`
+            );
+            break;
+          }
+        }
+        return invoke();
+      }
+    });
+    define(fetchRequest, "headers", proxyHeaders);
+    this.logger.info("converted request to a Fetch API Request!", fetchRequest);
+    return fetchRequest;
+  }
+};
+function toAbsoluteUrl(url) {
+  if (typeof location === "undefined") {
+    return new URL(url);
+  }
+  return new URL(url.toString(), location.href);
+}
+function define(target, property, value) {
+  Reflect.defineProperty(target, property, {
+    // Ensure writable properties to allow redefining readonly properties.
+    writable: true,
+    enumerable: true,
+    value
+  });
+}
+function createXMLHttpRequestProxy({
+  emitter,
+  logger
+}) {
+  const XMLHttpRequestProxy = new Proxy(globalThis.XMLHttpRequest, {
+    construct(target, args, newTarget) {
+      logger.info("constructed new XMLHttpRequest");
+      const originalRequest = Reflect.construct(target, args, newTarget);
+      const prototypeDescriptors = Object.getOwnPropertyDescriptors(
+        target.prototype
+      );
+      for (const propertyName in prototypeDescriptors) {
+        Reflect.defineProperty(
+          originalRequest,
+          propertyName,
+          prototypeDescriptors[propertyName]
+        );
+      }
+      const xhrRequestController = new XMLHttpRequestController(
+        originalRequest,
+        logger
+      );
+      xhrRequestController.onRequest = async function({ request, requestId }) {
+        const { interactiveRequest, requestController } = toInteractiveRequest(request);
+        this.logger.info("awaiting mocked response...");
+        emitter.once("request", ({ requestId: pendingRequestId }) => {
+          if (pendingRequestId !== requestId) {
+            return;
+          }
+          if (requestController.responsePromise.state === "pending") {
+            requestController.respondWith(void 0);
+          }
+        });
+        const resolverResult = await until2(async () => {
+          this.logger.info(
+            'emitting the "request" event for %s listener(s)...',
+            emitter.listenerCount("request")
+          );
+          await emitAsync(emitter, "request", {
+            request: interactiveRequest,
+            requestId
+          });
+          this.logger.info('all "request" listeners settled!');
+          const mockedResponse2 = await requestController.responsePromise;
+          this.logger.info("event.respondWith called with:", mockedResponse2);
+          return mockedResponse2;
+        });
+        if (resolverResult.error) {
+          this.logger.info(
+            "request listener threw an exception, aborting request...",
+            resolverResult.error
+          );
+          xhrRequestController.errorWith(resolverResult.error);
+          return;
+        }
+        const mockedResponse = resolverResult.data;
+        if (typeof mockedResponse !== "undefined") {
+          this.logger.info(
+            "received mocked response: %d %s",
+            mockedResponse.status,
+            mockedResponse.statusText
+          );
+          if (mockedResponse.type === "error") {
+            this.logger.info(
+              "received a network error response, rejecting the request promise..."
+            );
+            xhrRequestController.errorWith(new TypeError("Network error"));
+            return;
+          }
+          return xhrRequestController.respondWith(mockedResponse);
+        }
+        this.logger.info(
+          "no mocked response received, performing request as-is..."
+        );
+      };
+      xhrRequestController.onResponse = async function({
+        response,
+        isMockedResponse,
+        request,
+        requestId
+      }) {
+        this.logger.info(
+          'emitting the "response" event for %s listener(s)...',
+          emitter.listenerCount("response")
+        );
+        emitter.emit("response", {
+          response,
+          isMockedResponse,
+          request,
+          requestId
+        });
+      };
+      return xhrRequestController.request;
+    }
+  });
+  return XMLHttpRequestProxy;
+}
+var _XMLHttpRequestInterceptor = class extends Interceptor {
+  constructor() {
+    super(_XMLHttpRequestInterceptor.interceptorSymbol);
+  }
+  checkEnvironment() {
+    return typeof globalThis.XMLHttpRequest !== "undefined";
+  }
+  setup() {
+    const logger = this.logger.extend("setup");
+    logger.info('patching "XMLHttpRequest" module...');
+    const PureXMLHttpRequest = globalThis.XMLHttpRequest;
+    invariant2(
+      !PureXMLHttpRequest[IS_PATCHED_MODULE],
+      'Failed to patch the "XMLHttpRequest" module: already patched.'
+    );
+    globalThis.XMLHttpRequest = createXMLHttpRequestProxy({
+      emitter: this.emitter,
+      logger: this.logger
+    });
+    logger.info(
+      'native "XMLHttpRequest" module patched!',
+      globalThis.XMLHttpRequest.name
+    );
+    Object.defineProperty(globalThis.XMLHttpRequest, IS_PATCHED_MODULE, {
+      enumerable: true,
+      configurable: true,
+      value: true
+    });
+    this.subscriptions.push(() => {
+      Object.defineProperty(globalThis.XMLHttpRequest, IS_PATCHED_MODULE, {
+        value: void 0
+      });
+      globalThis.XMLHttpRequest = PureXMLHttpRequest;
+      logger.info(
+        'native "XMLHttpRequest" module restored!',
+        globalThis.XMLHttpRequest.name
+      );
+    });
+  }
+};
+var XMLHttpRequestInterceptor = _XMLHttpRequestInterceptor;
+XMLHttpRequestInterceptor.interceptorSymbol = Symbol("xhr");
+function createFallbackRequestListener(context, options) {
+  const interceptor = new BatchInterceptor({
+    name: "fallback",
+    interceptors: [new FetchInterceptor(), new XMLHttpRequestInterceptor()]
+  });
+  interceptor.on("request", async ({ request, requestId }) => {
+    const requestCloneForLogs = request.clone();
+    const response = await handleRequest(
+      request,
+      requestId,
+      context.getRequestHandlers(),
+      options,
+      context.emitter,
+      {
+        onMockedResponse(_, { handler, parsedResult }) {
+          if (!options.quiet) {
+            context.emitter.once("response:mocked", ({ response: response2 }) => {
+              handler.log({
+                request: requestCloneForLogs,
+                response: response2,
+                parsedResult
+              });
+            });
+          }
+        }
+      }
+    );
+    if (response) {
+      request.respondWith(response);
+    }
+  });
+  interceptor.on(
+    "response",
+    ({ response, isMockedResponse, request, requestId }) => {
+      context.emitter.emit(
+        isMockedResponse ? "response:mocked" : "response:bypass",
+        {
+          response,
+          request,
+          requestId
+        }
+      );
+    }
+  );
+  interceptor.apply();
+  return interceptor;
+}
+function createFallbackStart(context) {
+  return async function start(options) {
+    context.fallbackInterceptor = createFallbackRequestListener(
+      context,
+      options
+    );
+    printStartMessage({
+      message: "Mocking enabled (fallback mode).",
+      quiet: options.quiet
+    });
+    return void 0;
+  };
+}
+function createFallbackStop(context) {
+  return function stop() {
+    context.fallbackInterceptor?.dispose();
+    printStopMessage({ quiet: context.startOptions?.quiet });
+  };
+}
+function supportsReadableStreamTransfer() {
+  try {
+    const stream = new ReadableStream({
+      start: (controller) => controller.close()
+    });
+    const message = new MessageChannel();
+    message.port1.postMessage(stream, [stream]);
+    return true;
+  } catch (error22) {
+    return false;
+  }
+}
+var SetupWorkerApi = class extends SetupApi {
+  context;
+  startHandler = null;
+  stopHandler = null;
+  listeners;
+  constructor(...handlers) {
+    super(...handlers);
+    invariant2(
+      !isNodeProcess(),
+      devUtils.formatMessage(
+        "Failed to execute `setupWorker` in a non-browser environment. Consider using `setupServer` for Node.js environment instead."
+      )
+    );
+    this.listeners = [];
+    this.context = this.createWorkerContext();
+  }
+  createWorkerContext() {
+    const context = {
+      // Mocking is not considered enabled until the worker
+      // signals back the successful activation event.
+      isMockingEnabled: false,
+      startOptions: null,
+      worker: null,
+      getRequestHandlers: () => {
+        return this.handlersController.currentHandlers();
+      },
+      registration: null,
+      requests: /* @__PURE__ */ new Map(),
+      emitter: this.emitter,
+      workerChannel: {
+        on: (eventType, callback) => {
+          this.context.events.addListener(navigator.serviceWorker, "message", (event) => {
+            if (event.source !== this.context.worker) {
+              return;
+            }
+            const message = event.data;
+            if (!message) {
+              return;
+            }
+            if (message.type === eventType) {
+              callback(event, message);
+            }
+          });
+        },
+        send: (type) => {
+          this.context.worker?.postMessage(type);
+        }
+      },
+      events: {
+        addListener: (target, eventType, callback) => {
+          target.addEventListener(eventType, callback);
+          this.listeners.push({
+            eventType,
+            target,
+            callback
+          });
+          return () => {
+            target.removeEventListener(eventType, callback);
+          };
+        },
+        removeAllListeners: () => {
+          for (const { target, eventType, callback } of this.listeners) {
+            target.removeEventListener(eventType, callback);
+          }
+          this.listeners = [];
+        },
+        once: (eventType) => {
+          const bindings = [];
+          return new Promise((resolve, reject) => {
+            const handleIncomingMessage = (event) => {
+              try {
+                const message = event.data;
+                if (message.type === eventType) {
+                  resolve(message);
+                }
+              } catch (error22) {
+                reject(error22);
+              }
+            };
+            bindings.push(
+              this.context.events.addListener(
+                navigator.serviceWorker,
+                "message",
+                handleIncomingMessage
+              ),
+              this.context.events.addListener(
+                navigator.serviceWorker,
+                "messageerror",
+                reject
+              )
+            );
+          }).finally(() => {
+            bindings.forEach((unbind) => unbind());
+          });
+        }
+      },
+      supports: {
+        serviceWorkerApi: !("serviceWorker" in navigator) || location.protocol === "file:",
+        readableStreamTransfer: supportsReadableStreamTransfer()
+      }
+    };
+    this.startHandler = context.supports.serviceWorkerApi ? createFallbackStart(context) : createStartHandler(context);
+    this.stopHandler = context.supports.serviceWorkerApi ? createFallbackStop(context) : createStop(context);
+    return context;
+  }
+  async start(options = {}) {
+    if (options.waitUntilReady === true) {
+      devUtils.warn(
+        'The "waitUntilReady" option has been deprecated. Please remove it from this "worker.start()" call. Follow the recommended Browser integration (https://mswjs.io/docs/integrations/browser) to eliminate any race conditions between the Service Worker registration and any requests made by your application on initial render.'
+      );
+    }
+    this.context.startOptions = mergeRight(
+      DEFAULT_START_OPTIONS,
+      options
+    );
+    return await this.startHandler(this.context.startOptions, options);
+  }
+  stop() {
+    super.dispose();
+    this.context.events.removeAllListeners();
+    this.context.emitter.removeAllListeners();
+    this.stopHandler();
+  }
+};
+function setupWorker(...handlers) {
+  return new SetupWorkerApi(...handlers);
+}
 
-export { Ps as initialize, Os as mswLoader };
+// src/mswLoader.ts
+var worker;
+var opt;
+var initialHandlers = [];
+var initialize = async (options, handlers = []) => {
+  opt = options;
+  initialHandlers = handlers;
+};
+var setupHandlers = (msw) => {
+  if (worker) {
+    if (window.__MSW_STORYBOOK__)
+      return;
+    worker.resetHandlers(...initialHandlers);
+    if (msw) {
+      if (Array.isArray(msw) && msw.length > 0) {
+        worker.use(...msw);
+      } else if ("handlers" in msw && msw.handlers) {
+        const handlers = Object.values(msw.handlers).filter(Boolean).reduce(
+          (handlers2, handlersList) => handlers2.concat(handlersList),
+          []
+        );
+        if (handlers.length > 0) {
+          worker.use(...handlers);
+        }
+      }
+    }
+  }
+};
+var mswLoader = async (context) => {
+  const {
+    parameters: { msw },
+    viewMode
+  } = context;
+  if (!msw || window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker) {
+    return;
+  }
+  if (viewMode === "docs" && window.__MSW_STORYBOOK__.worker) {
+    worker = typeof global.process === "undefined" && window.__MSW_STORYBOOK__.worker;
+  } else {
+    worker = typeof global.process === "undefined" && setupWorker();
+  }
+  await worker.start(opt);
+  setupHandlers(msw);
+  if (worker) {
+    window.__MSW_STORYBOOK__ = window.__MSW_STORYBOOK__ || {};
+    window.__MSW_STORYBOOK__.worker = worker;
+  }
+  return {};
+};
+
+export { initialize, mswLoader };
 //# sourceMappingURL=out.js.map
 //# sourceMappingURL=index.js.map

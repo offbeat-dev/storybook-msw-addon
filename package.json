@@ -41,7 +41,6 @@
     "./manager": "./dist/manager.js",
     "./package.json": "./package.json"
   },
-  "typings": "global1.d.ts",
   "files": [
     "dist/**/*",
     "README.md",
