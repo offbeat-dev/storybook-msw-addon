@@ -1,16 +1,8 @@
 'use strict';
 
-// src/preset.ts
-var viteFinal = async (config) => {
-  console.log("This addon is augmenting the Vite config");
-  return config;
-};
-var webpack = async (config) => {
-  console.log("This addon is augmenting the Webpack config");
-  return config;
-};
+var e=async n=>(console.log("This addon is augmenting the Vite config"),n),o=async n=>(console.log("This addon is augmenting the Webpack config"),n);
 
-exports.viteFinal = viteFinal;
-exports.webpack = webpack;
+exports.viteFinal = e;
+exports.webpack = o;
 //# sourceMappingURL=out.js.map
 //# sourceMappingURL=preset.cjs.map

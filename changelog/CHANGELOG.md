@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.1...v2.1.2) (2024-03-27)
+
+
+### Bug Fixes
+
+* update README to use right msw version ([cc1129b](https://github.com/offbeat-dev/storybook-msw-addon/commit/cc1129b78eb7698a2493a57fc98dc38a01c07bba))
+
 ## [2.1.1](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.0...v2.1.1) (2024-03-25)
 
 
