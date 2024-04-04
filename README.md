@@ -51,6 +51,17 @@ npx msw init ./api --save
 
 When running Storybook, you have to serve the folder where you have init the MSW service worker as an asset to Storybook. Refer to [the docs](https://storybook.js.org/docs/react/configure/images-and-assets) if needed.
 
+### Add the addon to your project
+
+Add the addon to the storybook config in `./storybook/main.js`:
+
+```js
+addons: [
+    ...,
+    "storybook-msw-addon",
+  ],
+```
+
 ### Configure the addon
 
 Enable MSW in Storybook by initializing MSW and providing the MSW loader in `./storybook/preview.js`:
@@ -70,7 +81,7 @@ export const loaders = [mswLoader];
 Remember to serve the `public` folder, or the path where you have init the MSW service worker
 
 ```sh
-npm run start-storybook -s ${path to project folder initialized by msw}
+npm run storybook
 ```
 
 ## Usage
@@ -78,7 +89,7 @@ npm run start-storybook -s ${path to project folder initialized by msw}
 The pass request handlers (https://mswjs.io/docs/basics/request-handler) into the `handlers` property of the `msw` parameter. This is commonly an array of handlers.
 
 ```js
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 export const SuccessBehavior = () => <UserProfile />;
 
