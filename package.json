@@ -170,6 +170,7 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
-    "graphql-request": "^6.1.0"
+    "graphql-request": "^6.1.0",
+    "is-node-process": "^1.2.0"
   }
 }

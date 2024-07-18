@@ -1,6 +1,7 @@
 import type { RequestHandler } from "msw";
 import type { SetupWorker, StartOptions } from "msw/browser";
 import { setupWorker } from "msw/browser";
+import { isNodeProcess } from "is-node-process";
 
 export type MswParameters = {
   msw?: {
@@ -58,9 +59,9 @@ export const mswLoader = async (context: Context) => {
 
   if (viewMode === "docs" && window.__MSW_STORYBOOK__.worker) {
     worker =
-      typeof global.process === "undefined" && window.__MSW_STORYBOOK__.worker;
+      !isNodeProcess() && window.__MSW_STORYBOOK__.worker;
   } else {
-    worker = typeof global.process === "undefined" && setupWorker();
+    worker = !isNodeProcess() && setupWorker();
   }
   await worker.start(opt);
   setupHandlers(msw);
