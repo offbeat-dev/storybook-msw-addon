@@ -1,3 +1,10 @@
+## [2.1.5](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.4...v2.1.5) (2024-07-19)
+
+
+### Bug Fixes
+
+* use is-node-process instead of checking if process is defined ([a93c653](https://github.com/offbeat-dev/storybook-msw-addon/commit/a93c653574bbef61f0c4e6a44c44d8a7f5fa3fe1))
+
 ## [2.1.4](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.3...v2.1.4) (2024-04-04)
 
 
