@@ -17,7 +17,7 @@ An MSW (Mock Service Worker) addon including a control panel that enables intera
 
 ## Features
 
-- Up to date with current MSW version (2.1.0)
+- Up to date with MSW version (2.2.8)
 
 ## Installing and Setup
 
@@ -66,6 +66,8 @@ addons: [
 
 Enable MSW in Storybook by initializing MSW and providing the MSW loader in `./storybook/preview.js`:
 
+Storybook pre-v8.2
+
 ```js
 import { initialize, mswLoader } from "storybook-msw-addon";
 
@@ -74,6 +76,19 @@ initialize();
 
 // Provide the MSW addon loader globally. A loader runs before a story renders, avoiding potential race conditions.
 export const loaders = [mswLoader];
+```
+
+Storybook v8.2+
+
+```ts
+import { initialize, mswLoader } from "storybook-msw-addon";
+
+const preview: Preview = {
+  beforeAll: async () => {
+    initialize();
+  },
+  loaders: [mswLoader]
+}
 ```
 
 ### Start Storybook
