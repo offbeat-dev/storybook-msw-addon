@@ -1,3 +1,10 @@
+## [2.1.6](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.5...v2.1.6) (2024-10-29)
+
+
+### Bug Fixes
+
+* Cannot read properties of undefined (reading 'worker') on docs view ([62971e8](https://github.com/offbeat-dev/storybook-msw-addon/commit/62971e820d9a07401c7a2d5b450bc50b9ecbe69d))
+
 ## [2.1.5](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.4...v2.1.5) (2024-07-19)
 
 
