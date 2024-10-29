@@ -57,7 +57,7 @@ export const mswLoader = async (context: Context) => {
     return;
   }
 
-  if (viewMode === "docs" && window.__MSW_STORYBOOK__.worker) {
+  if (viewMode === "docs" && window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker) {
     worker =
       !isNodeProcess() && window.__MSW_STORYBOOK__.worker;
   } else {
