@@ -1,3 +1,10 @@
+## [2.1.7](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.6...v2.1.7) (2024-11-01)
+
+
+### Bug Fixes
+
+* update handlers when story changes ([0c9063e](https://github.com/offbeat-dev/storybook-msw-addon/commit/0c9063e5cb4085ed359ec0f0473ca271bc7798c5))
+
 ## [2.1.6](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.5...v2.1.6) (2024-10-29)
 
 
