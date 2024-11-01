@@ -26,7 +26,6 @@ export const initialize = async (options?: StartOptions, handlers: RequestHandle
 
 const setupHandlers = (msw: MswParameters["msw"]) => {
   if (worker) {
-    if (window.__MSW_STORYBOOK__) return;
     worker.resetHandlers(...initialHandlers);
     if (msw) {
       if (Array.isArray(msw) && msw.length > 0) {
@@ -53,16 +52,21 @@ export const mswLoader = async (context: Context) => {
     viewMode,
   } = context;
 
-  if (!msw || (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker)) {
+  if (!msw || isNodeProcess()) {
+    return;
+  }
+
+  if (window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker) {
+    setupHandlers(msw);
     return;
   }
 
   if (viewMode === "docs" && window.__MSW_STORYBOOK__ && window.__MSW_STORYBOOK__.worker) {
-    worker =
-      !isNodeProcess() && window.__MSW_STORYBOOK__.worker;
+    worker = window.__MSW_STORYBOOK__.worker;
   } else {
-    worker = !isNodeProcess() && setupWorker();
+    worker = setupWorker();
   }
+
   await worker.start(opt);
   setupHandlers(msw);
 
