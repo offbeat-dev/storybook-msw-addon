@@ -1,3 +1,10 @@
+## [2.1.8](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.7...v2.1.8) (2025-04-03)
+
+
+### Bug Fixes
+
+* SB_CORE-SERVER_0002 ReferenceError: module is not defined when using Node 22. ([010c62a](https://github.com/offbeat-dev/storybook-msw-addon/commit/010c62a9c0ab1267587e12652c4ec31e84e9b1e9))
+
 ## [2.1.7](https://github.com/offbeat-dev/storybook-msw-addon/compare/v2.1.6...v2.1.7) (2024-11-01)
 
 
